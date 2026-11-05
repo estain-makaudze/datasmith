@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="demo_customer_acme" model="res.partner">
+        <field name="name">Acme Corporation (Sage demo)</field>
+        <field name="is_company">True</field>
+        <field name="street">1 Main Street</field>
+        <field name="city">Harare</field>
+        <field name="ref">ACME001</field>
+        <field name="email">accounts@acme.example</field>
+    </record>
+</odoo>

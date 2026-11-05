@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_sage_root" name="Sage 300" sequence="90"/>
+    <menuitem id="menu_sage_queue" name="Sync Queue" parent="menu_sage_root" action="action_sage_sync_job" sequence="10"/>
+    <menuitem id="menu_sage_logs" name="HTTP Log" parent="menu_sage_root" action="action_sage_sync_log" sequence="20"/>
+    <menuitem id="menu_sage_config_root" name="Configuration" parent="menu_sage_root" sequence="100"/>
+    <menuitem id="menu_sage_config" name="Connections" parent="menu_sage_config_root" action="action_sage_config" sequence="10"/>
+</odoo>

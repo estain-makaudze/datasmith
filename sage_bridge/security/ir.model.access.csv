@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sage_config_user,sage.config user,model_sage_config,group_sage_user,1,0,0,0
+access_sage_config_manager,sage.config manager,model_sage_config,group_sage_manager,1,1,1,1
+access_sage_customer_mapping_user,sage.customer.mapping user,model_sage_customer_mapping,group_sage_user,1,0,0,0
+access_sage_customer_mapping_manager,sage.customer.mapping manager,model_sage_customer_mapping,group_sage_manager,1,1,1,1
+access_sage_invoice_mapping_user,sage.invoice.mapping user,model_sage_invoice_mapping,group_sage_user,1,0,0,0
+access_sage_invoice_mapping_manager,sage.invoice.mapping manager,model_sage_invoice_mapping,group_sage_manager,1,1,1,1
+access_sage_sync_job_user,sage.sync.job user,model_sage_sync_job,group_sage_user,1,0,0,0
+access_sage_sync_job_manager,sage.sync.job manager,model_sage_sync_job,group_sage_manager,1,1,1,1
+access_sage_sync_log_user,sage.sync.log user,model_sage_sync_log,group_sage_user,1,0,0,0
+access_sage_sync_log_manager,sage.sync.log manager,model_sage_sync_log,group_sage_manager,1,1,1,1

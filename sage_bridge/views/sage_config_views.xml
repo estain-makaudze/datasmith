@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sage_config_list" model="ir.ui.view">
+        <field name="name">sage.config.list</field>
+        <field name="model">sage.config</field>
+        <field name="arch" type="xml">
+            <list string="Sage 300 Connections">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="base_url"/>
+                <field name="company_code"/>
+                <field name="demo_mode" widget="boolean_toggle"/>
+                <field name="auto_push_on_post" widget="boolean_toggle"/>
+                <field name="last_tested_at"/>
+                <field name="last_tested_ok" widget="boolean_toggle"/>
+                <field name="active" invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sage_config_form" model="ir.ui.view">
+        <field name="name">sage.config.form</field>
+        <field name="model">sage.config</field>
+        <field name="arch" type="xml">
+            <form string="Sage 300 Connection">
+                <header>
+                    <button name="action_test_connection" type="object" string="Test Connection" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Demo Mode" bg_color="text-bg-info" invisible="not demo_mode"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group string="Identification">
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Last Test">
+                            <field name="last_tested_at" readonly="1"/>
+                            <field name="last_tested_ok" readonly="1"/>
+                            <field name="last_tested_message" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Connection">
+                        <field name="base_url" placeholder="https://sage.example.com/Sage300WebApi"/>
+                        <field name="company_code" placeholder="SAMINC"/>
+                        <field name="username"/>
+                        <field name="password" password="True"/>
+                        <field name="demo_mode" widget="boolean_toggle"/>
+                    </group>
+                    <group string="Behaviour">
+                        <field name="auto_push_on_post" widget="boolean_toggle"/>
+                        <field name="max_retries"/>
+                        <field name="retry_backoff_seconds"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sage_config" model="ir.actions.act_window">
+        <field name="name">Sage 300 Connections</field>
+        <field name="res_model">sage.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

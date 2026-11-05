@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- Default connection pointing at the mock-Sage server shipped alongside.
+         Safe to install on an empty DB: install the module, nothing else needed. -->
+    <record id="demo_sage_config" model="sage.config">
+        <field name="name">Demo Sage 300 (mock server)</field>
+        <field name="base_url">https://mock-sage.datasmith-demo.zimpreneur.com</field>
+        <field name="company_code">DEMO01</field>
+        <field name="username">demo</field>
+        <field name="password">demo123</field>
+        <field name="demo_mode">True</field>
+        <field name="auto_push_on_post">True</field>
+    </record>
+</odoo>

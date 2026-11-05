@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_account_move_form_sage" model="ir.ui.view">
+        <field name="name">account.move.form.sage</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_push_to_sage"
+                        type="object"
+                        string="Push to Sage 300"
+                        class="btn-secondary"
+                        invisible="state != 'posted' or move_type not in ('out_invoice', 'out_refund')"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Sage 300" invisible="not sage_document_number">
+                    <field name="sage_document_number" readonly="1"/>
+                    <field name="sage_batch_number" readonly="1"/>
+                    <field name="sage_posted" readonly="1" widget="boolean_toggle"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

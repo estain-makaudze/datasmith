@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sage_sync_job_list" model="ir.ui.view">
+        <field name="name">sage.sync.job.list</field>
+        <field name="model">sage.sync.job</field>
+        <field name="arch" type="xml">
+            <list string="Sync Queue" decoration-danger="status=='dead'" decoration-warning="status=='failed'" decoration-info="status=='running'" decoration-muted="status=='done'">
+                <field name="config_id"/>
+                <field name="move_id"/>
+                <field name="status"/>
+                <field name="attempt"/>
+                <field name="scheduled_at"/>
+                <field name="finished_at"/>
+                <field name="last_error" optional="hide"/>
+                <button name="action_retry_now" type="object" icon="fa-refresh" string="Retry" invisible="status not in ('failed', 'dead')"/>
+                <button name="action_view_logs" type="object" icon="fa-list-alt" string="Logs"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sage_sync_job_form" model="ir.ui.view">
+        <field name="name">sage.sync.job.form</field>
+        <field name="model">sage.sync.job</field>
+        <field name="arch" type="xml">
+            <form string="Sync Job">
+                <header>
+                    <button name="action_retry_now" type="object" string="Retry Now" class="btn-primary" invisible="status not in ('failed', 'dead')"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="config_id"/>
+                            <field name="move_id"/>
+                            <field name="attempt"/>
+                        </group>
+                        <group>
+                            <field name="scheduled_at"/>
+                            <field name="started_at"/>
+                            <field name="finished_at"/>
+                        </group>
+                    </group>
+                    <group string="Last Error" invisible="not last_error">
+                        <field name="last_error" nolabel="1" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="HTTP Logs">
+                            <field name="log_ids" readonly="1">
+                                <list decoration-success="success" decoration-danger="not success">
+                                    <field name="started_at"/>
+                                    <field name="method"/>
+                                    <field name="endpoint"/>
+                                    <field name="status_code"/>
+                                    <field name="duration_ms" string="ms"/>
+                                    <field name="success" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sage_sync_job" model="ir.actions.act_window">
+        <field name="name">Sync Queue</field>
+        <field name="res_model">sage.sync.job</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{"search_default_status_in_flight": 1}</field>
+    </record>
+
+    <record id="view_sage_sync_job_search" model="ir.ui.view">
+        <field name="name">sage.sync.job.search</field>
+        <field name="model">sage.sync.job</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="move_id"/>
+                <field name="config_id"/>
+                <filter string="Pending" name="pending" domain="[('status','=','pending')]"/>
+                <filter string="Failed" name="failed" domain="[('status','=','failed')]"/>
+                <filter string="Dead-Letter" name="dead" domain="[('status','=','dead')]"/>
+                <filter string="Done" name="done" domain="[('status','=','done')]"/>
+                <filter string="In-flight" name="status_in_flight" domain="[('status','in',('pending','running','failed','dead'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Connection" name="group_config" context="{'group_by': 'config_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>
