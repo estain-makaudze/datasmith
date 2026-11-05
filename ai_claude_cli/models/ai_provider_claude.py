@@ -174,44 +174,49 @@ def _patched_request_llm(self, *args, **kwargs):
     user_prompts = kwargs.get("user_prompts") or (args[2] if len(args) > 2 else [])
     inputs = kwargs.get("inputs") or []
 
-    # The Odoo Ask AI drawer sometimes pre-seeds user_prompts with "Hello" and
-    # puts the real user message into `inputs` (chat history). Extract text from
-    # inputs when user_prompts looks like just a greeting.
-    def _extract_user_text_from_inputs(inp_list):
+    # Odoo 19 Ask AI sends the real user conversation inside `inputs` as a
+    # Gemini-style list: [{'role':'user','parts':[{'text':'...'}]}, ...].
+    # Flatten the whole thing to text and send it as the user prompt so Claude
+    # sees both the session context AND the user's actual question.
+    def _flatten_inputs(inp_list):
         pieces = []
         for item in inp_list or []:
-            if isinstance(item, dict):
-                role = (item.get("role") or "").lower()
-                if role == "user":
-                    content = item.get("content") or item.get("text") or ""
-                    if isinstance(content, list):
-                        for c in content:
-                            if isinstance(c, dict):
-                                pieces.append(c.get("text") or c.get("content") or "")
-                            else:
-                                pieces.append(str(c))
-                    else:
-                        pieces.append(str(content))
-            elif isinstance(item, str):
+            if isinstance(item, str):
                 pieces.append(item)
+                continue
+            if not isinstance(item, dict):
+                continue
+            role = (item.get("role") or "user").lower()
+            # Gemini-style parts
+            if isinstance(item.get("parts"), list):
+                for p in item["parts"]:
+                    if isinstance(p, dict) and "text" in p:
+                        pieces.append(f"[{role}] {p['text']}")
+                    elif isinstance(p, str):
+                        pieces.append(f"[{role}] {p}")
+            # OpenAI-style content
+            elif "content" in item:
+                c = item["content"]
+                if isinstance(c, list):
+                    for ci in c:
+                        txt = ci.get("text") if isinstance(ci, dict) else str(ci)
+                        if txt:
+                            pieces.append(f"[{role}] {txt}")
+                else:
+                    pieces.append(f"[{role}] {c}")
+            elif item.get("text"):
+                pieces.append(f"[{role}] {item['text']}")
         return [p for p in pieces if p.strip()]
 
-    _logger.info(
-        "ai_claude_cli: RAW args=%s kwargs_keys=%s user_prompts=%s inputs_sample=%s",
-        [type(a).__name__ for a in args],
-        list(kwargs.keys()),
-        [(p[:80] if isinstance(p, str) else type(p).__name__) for p in (user_prompts or [])],
-        str(inputs)[:300],
-    )
-
-    inputs_user_text = _extract_user_text_from_inputs(inputs)
-    # If user_prompts is just a trivial greeting AND we have real messages in
-    # inputs, prefer those.
+    flat_inputs = _flatten_inputs(inputs)
     real_user_text = "\n\n".join(user_prompts) if user_prompts else ""
-    if (not real_user_text or len(real_user_text) < 15) and inputs_user_text:
-        real_user_text = inputs_user_text[-1]   # the most recent user turn
-        _logger.info("ai_claude_cli: swapped user_prompts for inputs' last user turn (%d chars)",
-                     len(real_user_text))
+    if flat_inputs:
+        # Prefer the full flattened conversation — it includes session context
+        # that Odoo embeds (user id, company, timezone, searchable models).
+        real_user_text = "\n\n".join(flat_inputs) + (
+            f"\n\n{real_user_text}" if real_user_text else "")
+        _logger.info("ai_claude_cli: flattened %d inputs into user prompt (%d chars total)",
+                     len(flat_inputs), len(real_user_text))
 
     native_system = "\n\n".join(p for p in (system_prompts or []) if p)
     # Our prompt goes LAST so it has the final word on behaviour. The native
