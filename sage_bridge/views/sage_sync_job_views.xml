@@ -81,10 +81,9 @@
                 <filter string="Dead-Letter" name="dead" domain="[('status','=','dead')]"/>
                 <filter string="Done" name="done" domain="[('status','=','done')]"/>
                 <filter string="In-flight" name="status_in_flight" domain="[('status','in',('pending','running','failed','dead'))]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
-                    <filter string="Connection" name="group_config" context="{'group_by': 'config_id'}"/>
-                </group>
+                <separator/>
+                <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                <filter string="Connection" name="group_config" context="{'group_by': 'config_id'}"/>
             </search>
         </field>
     </record>
