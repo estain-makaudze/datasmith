@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_payment_run_wizard_view_form" model="ir.ui.view">
+            <field name="name">transport.payment.run.wizard.form</field>
+            <field name="model">transport.payment.run.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Run Driver Payments">
+                    <group>
+                        <group>
+                            <field name="payment_period"/>
+                            <field name="currency_id"/>
+                        </group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_create_run" type="object"
+                                string="Compute Payments" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_transport_payment_run_wizard" model="ir.actions.act_window">
+            <field name="name">Run Driver Payments</field>
+            <field name="res_model">transport.payment.run.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>

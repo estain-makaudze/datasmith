@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="res_config_settings_view_form_transport" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.transport.module</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <app data-string="Transport" string="Transport" name="transport_module">
+                        <block title="Cash-Up Posting" name="transport_cashup_block">
+                            <setting string="Operations Journal"
+                                     help="Miscellaneous journal that daily cash-up entries are posted to.">
+                                <field name="transport_operations_journal_id"/>
+                            </setting>
+                            <setting string="Transport Income Account"
+                                     help="Income account credited with the gross takings of each cash-up.">
+                                <field name="transport_income_account_id"/>
+                            </setting>
+                            <setting string="Cash / Undeposited Funds Account"
+                                     help="Account debited with the net cash banked from each cash-up.">
+                                <field name="transport_cash_account_id"/>
+                            </setting>
+                        </block>
+                        <block title="Driver Payments" name="transport_payment_block">
+                            <setting string="Wages Journal"
+                                     help="Journal that driver payment runs are posted to.">
+                                <field name="transport_wages_journal_id"/>
+                            </setting>
+                            <setting string="Wage Expense Account"
+                                     help="Expense account debited with fixed wages.">
+                                <field name="transport_wage_expense_account_id"/>
+                            </setting>
+                            <setting string="Commission Expense Account"
+                                     help="Expense account debited with commission. Leave empty to use the wage expense account.">
+                                <field name="transport_commission_expense_account_id"/>
+                            </setting>
+                            <setting string="Driver Payable Account"
+                                     help="Payable account credited per driver; register payments against it from the journal entry.">
+                                <field name="transport_driver_payable_account_id"/>
+                            </setting>
+                        </block>
+                        <block title="Defaults" name="transport_defaults_block">
+                            <setting string="Default Cash-Up Currency"
+                                     help="Currency proposed on new cash-up sheets (e.g. USD).">
+                                <field name="transport_default_currency_id"/>
+                            </setting>
+                            <setting string="Default Payment Period"
+                                     help="Period proposed when running driver payments.">
+                                <field name="transport_default_payment_period"/>
+                            </setting>
+                        </block>
+                    </app>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_transport_config_settings" model="ir.actions.act_window">
+            <field name="name">Transport Settings</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="context">{'module': 'transport_module'}</field>
+        </record>
+
+    </data>
+</odoo>

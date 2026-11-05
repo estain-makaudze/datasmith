@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_payment_run_view_list" model="ir.ui.view">
+            <field name="name">transport.payment.run.list</field>
+            <field name="model">transport.payment.run</field>
+            <field name="arch" type="xml">
+                <list decoration-success="state == 'posted'">
+                    <field name="name"/>
+                    <field name="payment_period"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="driver_count" string="Crew"/>
+                    <field name="currency_id" column_invisible="1"/>
+                    <field name="total_commission" sum="Total"/>
+                    <field name="total_pay" sum="Total"/>
+                    <field name="state" widget="badge"
+                           decoration-warning="state in ('draft', 'computed')"
+                           decoration-info="state == 'confirmed'"
+                           decoration-success="state == 'posted'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="transport_payment_run_view_form" model="ir.ui.view">
+            <field name="name">transport.payment.run.form</field>
+            <field name="model">transport.payment.run</field>
+            <field name="arch" type="xml">
+                <form string="Payment Run">
+                    <header>
+                        <button name="action_compute" type="object" string="Compute"
+                                class="btn-primary" invisible="state not in ('draft', 'computed')"/>
+                        <button name="action_confirm" type="object" string="Confirm"
+                                class="btn-primary" invisible="state != 'computed'"/>
+                        <button name="action_post" type="object" string="Post to Accounting"
+                                class="btn-primary" invisible="state != 'confirmed'"
+                                groups="transport_module.group_transport_manager"/>
+                        <button name="action_draft" type="object" string="Reset to Draft"
+                                invisible="state not in ('computed', 'confirmed')"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,computed,confirmed,posted"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_move" type="object"
+                                    class="oe_stat_button" icon="fa-book"
+                                    invisible="not move_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Journal</span>
+                                    <span class="o_stat_text">Entry</span>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="payment_period" readonly="state != 'draft'"/>
+                                <field name="date_from" readonly="state != 'draft'"/>
+                                <field name="date_to" readonly="state != 'draft'"/>
+                                <field name="move_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="currency_id" readonly="state != 'draft'"/>
+                                <field name="total_commission"/>
+                                <field name="total_pay" class="fw-bold"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Driver Payments" name="payments">
+                                <field name="payment_ids" readonly="1">
+                                    <list>
+                                        <field name="driver_id"/>
+                                        <field name="scheme_type"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="takings_total"/>
+                                        <field name="base_wage"/>
+                                        <field name="unpaid_leave_days" optional="show"/>
+                                        <field name="leave_deduction"/>
+                                        <field name="commission_amount"/>
+                                        <field name="total_pay" sum="Total" class="fw-bold"/>
+                                        <button name="action_view_cashups" type="object"
+                                                icon="fa-search" title="View counted cash-ups"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes" name="notes">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_transport_payment_run" model="ir.actions.act_window">
+            <field name="name">Payment Runs</field>
+            <field name="res_model">transport.payment.run</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No payment runs yet</p>
+                <p>Use Operations ▸ Run Driver Payments to compute what each
+                   crew member is owed for a period from their cash-ups and
+                   payment scheme.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,191 @@
+=====================================================================
+ ZIMRA FDMS FISCALISATION FOR ODOO 19 - TESTER'S GUIDE
+=====================================================================
+
+Modules under test (folder /home/thir13ten/FACTORY/TROMED/):
+  - l10n_zw        Zimbabwe taxes (VAT 15.5% / 0% / exempt / 5% WHT) + ZIMRA tax IDs
+  - l10n_zw_fdms   ZIMRA fiscalisation engine (devices, signing, queue, fiscal days, QR)
+
+Everything below can be done in DEMO mode - no ZIMRA account, no internet needed.
+Demo mode fakes all ZIMRA server responses but runs the real signing, hash chain,
+counters, queue, PDF and fiscal-day logic.
+
+---------------------------------------------------------------------
+ PART A - START THE SANDBOX
+---------------------------------------------------------------------
+
+A sandbox database "zw_fdms_test2" already exists with the modules installed and
+one demo device, one invoice and one credit note already fiscalised.
+
+1. Open a terminal and run (one line):
+
+   cd /opt/community/odoo19 && PGPASSWORD=esxakastan13 PGUSER=stan PGHOST=127.0.0.1 PGPORT=5432 /opt/community/odoo19-venv/bin/python odoo-bin -c /home/thir13ten/FACTORY/TROMED/tromed.conf -d zw_fdms_test2 --http-port=8097
+
+2. Browser: http://localhost:8097
+   Login: admin   Password: admin
+
+3. If you want a completely clean database instead, run first:
+   PGPASSWORD=esxakastan13 createdb -h 127.0.0.1 -U stan zw_fdms_test3
+   then start Odoo with  -d zw_fdms_test3 -i l10n_zw,l10n_zw_fdms  added to the
+   command in step 1, and afterwards configure a company country = Zimbabwe and
+   give a sale tax a "ZIMRA Tax ID" (see B2).
+
+---------------------------------------------------------------------
+ PART B - TEST CASES (tick each one)
+---------------------------------------------------------------------
+
+Menu path used throughout:
+   Accounting > Configuration > ZIMRA Fiscalisation > Fiscal Devices / Fiscal Days / Fiscal Documents
+
+[ ] B1  Automated test suite passes
+        In a terminal (one line):
+        cd /opt/community/odoo19 && PGPASSWORD=esxakastan13 PGUSER=stan PGHOST=127.0.0.1 PGPORT=5432 /opt/community/odoo19-venv/bin/python odoo-bin -c /home/thir13ten/FACTORY/TROMED/tromed.conf -d zw_fdms_test2 -u l10n_zw_fdms --test-enable --test-tags /l10n_zw_fdms --stop-after-init --http-port=8098 2>&1 | grep odoo.tests.result
+        EXPECTED: "0 failed, 0 error(s) of 17 tests"
+
+[ ] B2  Tax mapping is visible
+        Accounting > Configuration > Taxes > open "VAT 15.5%" > Advanced Options tab
+        EXPECTED: a "ZIMRA" group with ZIMRA Tax ID = 515, Tax Code = A.
+
+[ ] B3  Register a new demo device
+        Fiscal Devices > New:
+           Name: Test Device 2 | Device ID: 777 | Serial: TEST-777 | Mode: Demo
+        Save > click "Register with ZIMRA" > "Verify Taxpayer" > taxpayer details
+        appear > "Confirm & Register".
+        EXPECTED: status = Registered; Device Private Key and Device Certificate
+        filled; Taxpayer group filled; QR URL = https://fdmstest.zimra.co.zw/
+        Then click Ping, Get Status, Refresh Config, Resync Counters.
+        EXPECTED: each shows a green notification, no error.
+        NOTE: only ONE registered device per company is used automatically. Archive
+        "Test Device 2" again (Action > Archive) before B4, or the invoices will go
+        to whichever device is found first.
+
+[ ] B4  Post an invoice -> it is signed instantly
+        Accounting > Customers > Invoices > New
+           Customer: any individual (NOT a company)   Product: any   Qty 3
+           Tax on the line: VAT 15.5%
+        Confirm.
+        EXPECTED: a new "ZIMRA" tab on the invoice with:
+           ZIMRA Status = Signed / To Send
+           Fiscal Receipt No (increments: 1, 2, 3...)
+           Fiscal day no, fiscal date
+           Verification Code like XXXX-XXXX-XXXX-XXXX
+           A QR image and a QR URL starting https://fdmstest.zimra.co.zw/
+        Fiscal Documents menu: one new line per invoice, status Signed.
+
+[ ] B5  Printed invoice carries the fiscal block
+        On the invoice: Print > Invoice (PDF)
+        EXPECTED at the bottom: "ZIMRA Fiscal Tax Invoice" block with Device ID
+        (10 digits, zero padded), Device Serial, Fiscal Day, Receipt Global No,
+        Fiscal Date, Verification Code, verify URL and a QR code.
+
+[ ] B6  Submission queue sends it
+        Settings > Technical > Scheduled Actions > "ZIMRA FDMS: submit fiscal documents"
+        > Run Manually  (or simply wait up to 10 minutes)
+        EXPECTED: invoice ZIMRA Status = Sent to ZIMRA; Fiscal Documents line shows
+        Sent, an FDMS Receipt ID (e.g. 100003), colour "Clean".
+
+[ ] B7  Hash chain continues
+        Post a second invoice. In Fiscal Documents open the two documents.
+        EXPECTED: second has Receipt Global No +1, Receipt Counter +1, and its
+        "Previous Hash" equals the first document's "Receipt Hash".
+
+[ ] B8  Cannot reset a fiscalised invoice to draft
+        Open a posted invoice.
+        EXPECTED: no "Reset to Draft" button. (Dev check: calling it raises an
+        error "...has been fiscalised with ZIMRA and cannot be reset to draft".)
+
+[ ] B9  Fiscal documents cannot be deleted
+        Fiscal Documents > select one > Action > Delete
+        EXPECTED: error "Fiscal documents are part of the ZIMRA hash chain and can
+        never be deleted."
+
+[ ] B10 B2B rule - company customers need a TIN
+        Contacts: create "ACME (Pvt) Ltd", tick "Company", NO ZIMRA TIN.
+        New invoice for ACME > Confirm.
+        EXPECTED: blocked with message "...B2B fiscal invoices must carry the
+        buyer's 10-digit ZIMRA TIN...". Invoice stays draft.
+        Edit ACME: ZIMRA TIN = 1234567890, ZIMRA VAT Number = 123456789 > Save.
+        Confirm invoice again.
+        EXPECTED: posts; Fiscal Documents > open > Attachment JSON contains
+        "buyerData" with buyerTIN 1234567890.
+        Also try TIN = 12345 -> EXPECTED validation error "must be exactly 10 digits".
+
+[ ] B11 Tax without ZIMRA ID is refused
+        Create a tax "Test 15%" (sale, 15%) with NO ZIMRA Tax ID. Put it on an
+        invoice line > Confirm.
+        EXPECTED: blocked: "Line '...' has no tax with a ZIMRA Tax ID...".
+
+[ ] B12 Credit note flow
+        Open a SENT invoice > Credit Note > Reason "test" > Reverse > Confirm the
+        credit note.
+        EXPECTED: credit note has its own ZIMRA tab (Signed), Fiscal Documents shows
+        type "Credit Note" with "Original Fiscal Document" = the invoice's document,
+        receipt total negative.
+        Run the cron (B6) > EXPECTED: credit note Sent.
+
+[ ] B13 Credit note without fiscalised original is refused
+        Accounting > Customers > Credit Notes > New (manual, not linked to an
+        invoice) > add a line > Confirm.
+        EXPECTED: blocked: "Credit notes must reference a fiscalised invoice...".
+
+[ ] B14 Close the fiscal day
+        Fiscal Devices > open the device > "Close Fiscal Day".
+        EXPECTED: wizard shows document count, unsent count (0 if cron was run) and
+        a counters preview with SaleByTax / SaleTaxByTax / CreditNoteByTax /
+        CreditNoteTaxByTax / BalanceByMoneyType lines. Click Close Fiscal Day.
+        Fiscal Days menu: the day is "Closed" (demo close completes at once; if it
+        shows "Closing", run cron "ZIMRA FDMS: close aging fiscal days").
+        Check: SaleByTax is positive and CreditNoteByTax negative - they are NOT
+        netted against each other.
+
+[ ] B15 New day restarts the per-day chain
+        Post another invoice.
+        EXPECTED: Fiscal Day No = previous + 1, Receipt Counter = 1, Previous Hash
+        empty, but Receipt Global No keeps increasing (never resets).
+
+[ ] B16 Close with unsent documents
+        Post an invoice, do NOT run the cron, open Close Fiscal Day.
+        EXPECTED: warning "Some receipts ... not been submitted", unsent count 1,
+        a "Close even with unsubmitted documents" checkbox. Without ticking it the
+        close is refused.
+
+[ ] B17 Retry button
+        Fiscal Documents > open a Signed/Error document > "Retry Submission".
+        EXPECTED: becomes Sent (demo mode).
+
+[ ] B18 Multi-company safety (if you have a 2nd company)
+        Switch company: Fiscal Devices / Days / Documents of the other company are
+        not visible; invoices of a company with no registered device post normally
+        with NO ZIMRA tab (fiscalisation silently not applicable).
+
+---------------------------------------------------------------------
+ PART C - OPTIONAL: REAL HTTP AGAINST A MOCK FDMS SERVER
+---------------------------------------------------------------------
+Tests the network/certificate (mTLS) plumbing without ZIMRA credentials.
+  git clone https://github.com/takumade/zimra-fdms-mock-server
+  cd zimra-fdms-mock-server && npm install && npm start
+In Odoo (developer mode): Settings > Technical > System Parameters > New:
+  Key:   l10n_zw_fdms.mock_base_url
+  Value: http://localhost:<port printed by the mock server>
+Create a device in mode "ZIMRA Test", register it, repeat B4-B14.
+
+---------------------------------------------------------------------
+ PART D - ZIMRA TEST ENVIRONMENT (needs credentials)
+---------------------------------------------------------------------
+1. On the ZIMRA taxpayer portal register a VIRTUAL fiscal device -> you receive
+   Device ID, Device Serial No and an 8-character Activation Key.
+2. Fiscal Devices > New: fill those, Mode = "ZIMRA Test", Device Model Name /
+   Version exactly as registered on the portal. Save > Register with ZIMRA.
+3. Run a full day: several invoices, one credit note, run the cron, close the day.
+4. Check on the ZIMRA portal (https://fdmstest.zimra.co.zw/Receipt/Find - scan the
+   QR or type the verification code) that receipts validate, and that the day
+   closes with NO red validation errors. Fiscal Documents > "Red Validation" filter
+   must be empty.
+   This step confirms the hash-chain encoding before going to Production.
+
+---------------------------------------------------------------------
+ WHAT TO REPORT
+---------------------------------------------------------------------
+For any failing step send: the step number, what you clicked, the exact error
+text (copy it), and a screenshot of the Fiscal Documents line or invoice ZIMRA tab.
+Server logs: the terminal running Odoo (Part A step 1) prints tracebacks.

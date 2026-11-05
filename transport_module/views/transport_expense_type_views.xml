@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_expense_type_view_list" model="ir.ui.view">
+            <field name="name">transport.expense.type.list</field>
+            <field name="model">transport.expense.type</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="name"/>
+                    <field name="code" optional="show"/>
+                    <field name="account_id"/>
+                    <field name="requires_reference"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_transport_expense_type" model="ir.actions.act_window">
+            <field name="name">Expense Types</field>
+            <field name="res_model">transport.expense.type</field>
+            <field name="view_mode">list</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Configure operating expense types</p>
+                <p>Each expense type carries the ledger account it posts to —
+                   fuel, tollgates, rank fees, fines and so on.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

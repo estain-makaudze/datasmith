@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="leave_type_annual" model="transport.leave.type">
+            <field name="name">Annual Leave</field>
+            <field name="paid" eval="True"/>
+            <field name="requires_allocation" eval="True"/>
+            <field name="default_annual_days">10</field>
+        </record>
+
+        <record id="leave_type_sick" model="transport.leave.type">
+            <field name="name">Sick Leave</field>
+            <field name="paid" eval="True"/>
+            <field name="requires_allocation" eval="False"/>
+        </record>
+
+        <record id="leave_type_unpaid" model="transport.leave.type">
+            <field name="name">Unpaid Absence</field>
+            <field name="paid" eval="False"/>
+            <field name="requires_allocation" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

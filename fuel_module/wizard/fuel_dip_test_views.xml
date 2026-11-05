@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_fuel_dip_test_form" model="ir.ui.view">
+            <field name="name">fuel.dip.test.form</field>
+            <field name="model">fuel.dip.test</field>
+            <field name="arch" type="xml">
+                <form string="Test a Dip">
+                    <p class="text-muted">
+                        Enter a dip as it would be read off the stick. The litres come from
+                        this tank's strapping chart, interpolating between rows.
+                    </p>
+                    <group>
+                        <field name="tank_id"/>
+                        <field name="chart_line_count" string="Chart rows" readonly="1"/>
+                        <field name="dip_mm"/>
+                    </group>
+                    <group string="Result">
+                        <field name="litres"/>
+                        <field name="ullage_litres"/>
+                    </group>
+                    <footer>
+                        <button string="Close" class="btn-primary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_fuel_dip_test" model="ir.actions.act_window">
+            <field name="name">Test a Dip</field>
+            <field name="res_model">fuel.dip.test</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>

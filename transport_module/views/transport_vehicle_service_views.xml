@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_vehicle_service_view_list" model="ir.ui.view">
+            <field name="name">transport.vehicle.service.list</field>
+            <field name="model">transport.vehicle.service</field>
+            <field name="arch" type="xml">
+                <list decoration-muted="state == 'cancelled'"
+                      decoration-warning="state == 'in_service'"
+                      decoration-success="state == 'posted'">
+                    <field name="name"/>
+                    <field name="date_sent"/>
+                    <field name="vehicle_id"/>
+                    <field name="description"/>
+                    <field name="workshop_name" optional="show"/>
+                    <field name="date_returned" optional="show"/>
+                    <field name="next_service_date" optional="show"/>
+                    <field name="currency_id" column_invisible="1"/>
+                    <field name="total_cost" sum="Total"/>
+                    <field name="state" widget="badge"
+                           decoration-warning="state == 'in_service'"
+                           decoration-info="state == 'done'"
+                           decoration-success="state == 'posted'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="transport_vehicle_service_view_form" model="ir.ui.view">
+            <field name="name">transport.vehicle.service.form</field>
+            <field name="model">transport.vehicle.service</field>
+            <field name="arch" type="xml">
+                <form string="Vehicle Service">
+                    <header>
+                        <button name="action_send" type="object"
+                                string="Send to Workshop" class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_done" type="object"
+                                string="Back on the Road" class="btn-primary"
+                                invisible="state != 'in_service'"/>
+                        <button name="action_post" type="object"
+                                string="Post to Accounting" class="btn-primary"
+                                groups="transport_module.group_transport_manager"
+                                invisible="state != 'done'"/>
+                        <button name="action_cancel" type="object"
+                                string="Cancel"
+                                invisible="state in ('posted', 'cancelled')"/>
+                        <button name="action_draft" type="object"
+                                string="Reset to Draft"
+                                invisible="state != 'cancelled'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,in_service,done,posted"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_move" type="object"
+                                    class="oe_stat_button" icon="fa-file-text-o"
+                                    invisible="not move_id">
+                                <span class="o_stat_text">Journal Entry</span>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="vehicle_id"
+                                       readonly="state != 'draft'"/>
+                                <field name="description"
+                                       placeholder="e.g. Full service &amp; brake pads"/>
+                                <field name="workshop_name"
+                                       placeholder="e.g. Mbudzi Motors"/>
+                                <field name="odometer"/>
+                                <field name="currency_id"
+                                       groups="base.group_multi_currency"/>
+                            </group>
+                            <group>
+                                <field name="date_sent"/>
+                                <field name="date_returned"/>
+                                <field name="next_service_date"/>
+                                <field name="next_service_odometer"/>
+                                <field name="move_id" invisible="1"/>
+                                <field name="company_id"
+                                       groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Service Expenses" name="expenses">
+                                <field name="line_ids"
+                                       readonly="state in ('posted', 'cancelled')">
+                                    <list editable="bottom">
+                                        <field name="expense_type_id"/>
+                                        <field name="description"/>
+                                        <field name="reference"/>
+                                        <field name="currency_id"
+                                               column_invisible="1"/>
+                                        <field name="amount" sum="Total"/>
+                                    </list>
+                                </field>
+                                <group class="oe_subtotal_footer">
+                                    <field name="total_cost"/>
+                                </group>
+                            </page>
+                            <page string="Notes" name="notes">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- Quick dialog used by the "Send to Service" button on the vehicle:
+             capture the essentials and send immediately; costs are recorded
+             later on the full form when the vehicle comes back. -->
+        <record id="transport_vehicle_service_view_form_quick" model="ir.ui.view">
+            <field name="name">transport.vehicle.service.form.quick</field>
+            <field name="model">transport.vehicle.service</field>
+            <field name="priority">100</field>
+            <field name="arch" type="xml">
+                <form string="Send to Service">
+                    <group>
+                        <field name="vehicle_id" readonly="1"/>
+                        <field name="description"
+                               placeholder="e.g. Full service &amp; brake pads"/>
+                        <field name="workshop_name"
+                               placeholder="e.g. Mbudzi Motors"/>
+                        <field name="date_sent"/>
+                        <field name="odometer"/>
+                    </group>
+                    <footer>
+                        <button name="action_send" type="object"
+                                string="Send to Workshop" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary"
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="transport_vehicle_service_view_search" model="ir.ui.view">
+            <field name="name">transport.vehicle.service.search</field>
+            <field name="model">transport.vehicle.service</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="vehicle_id"/>
+                    <field name="workshop_name"/>
+                    <filter name="filter_in_service" string="In Workshop"
+                            domain="[('state', '=', 'in_service')]"/>
+                    <filter name="filter_done" string="Completed"
+                            domain="[('state', 'in', ('done', 'posted'))]"/>
+                    <group>
+                        <filter name="group_vehicle" string="Vehicle"
+                                context="{'group_by': 'vehicle_id'}"/>
+                        <filter name="group_state" string="Status"
+                                context="{'group_by': 'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_transport_vehicle_service" model="ir.actions.act_window">
+            <field name="name">Workshop &amp; Services</field>
+            <field name="res_model">transport.vehicle.service</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Send a vehicle to the workshop</p>
+                <p>Track workshop visits, service costs and the next service due date.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

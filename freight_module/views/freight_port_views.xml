@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="freight_port_view_list" model="ir.ui.view">
+            <field name="name">freight.port.list</field>
+            <field name="model">freight.port</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="mode"/>
+                    <field name="country_id"/>
+                    <field name="free_days"/>
+                    <field name="demurrage_daily_rate"/>
+                    <field name="demurrage_currency_id" optional="hide"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="freight_port_view_form" model="ir.ui.view">
+            <field name="name">freight.port.form</field>
+            <field name="model">freight.port</field>
+            <field name="arch" type="xml">
+                <form string="Port">
+                    <sheet>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <div class="oe_title">
+                            <label for="code"/>
+                            <h2><field name="code" placeholder="BBR"/></h2>
+                            <h1><field name="name" placeholder="e.g. Beitbridge Border Post"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="mode"/>
+                                <field name="country_id"/>
+                                <field name="active" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="free_days"/>
+                                <label for="demurrage_daily_rate"/>
+                                <div class="o_row">
+                                    <field name="demurrage_daily_rate"/>
+                                    <field name="demurrage_currency_id"/>
+                                    <span>per day</span>
+                                </div>
+                            </group>
+                        </group>
+                        <group string="Notes">
+                            <field name="notes" nolabel="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="freight_port_view_search" model="ir.ui.view">
+            <field name="name">freight.port.search</field>
+            <field name="model">freight.port</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="code"/>
+                    <filter name="road" string="Road" domain="[('mode', '=', 'road')]"/>
+                    <filter name="sea" string="Sea" domain="[('mode', '=', 'sea')]"/>
+                    <filter name="air" string="Air" domain="[('mode', '=', 'air')]"/>
+                    <separator/>
+                    <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                    <group>
+                        <filter name="group_mode" string="Mode" context="{'group_by': 'mode'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_freight_port" model="ir.actions.act_window">
+            <field name="name">Ports</field>
+            <field name="res_model">freight.port</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Add a port of entry or exit</p>
+                <p>Beitbridge, Chirundu, Durban, Harare airport. Each port carries its own
+                   free-day allowance and daily demurrage rate — they feed the demurrage
+                   countdown on each consignment.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

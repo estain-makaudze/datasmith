@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Zimbabwe Gold (ZiG). Odoo ships ZWL but not ZWG. -->
+        <record id="currency_zwg" model="res.currency">
+            <field name="name">ZWG</field>
+            <field name="full_name">Zimbabwe Gold</field>
+            <field name="symbol">ZiG</field>
+            <field name="rounding">0.01</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="currency_zwg_rate_recent" model="res.currency.rate">
+            <field name="currency_id" ref="currency_zwg"/>
+            <field name="name" eval="(DateTime.today() - timedelta(days=30)).strftime('%Y-%m-%d')"/>
+            <field name="rate">26.40</field>
+        </record>
+
+        <record id="currency_zwg_rate_current" model="res.currency.rate">
+            <field name="currency_id" ref="currency_zwg"/>
+            <field name="name" eval="(DateTime.today() - timedelta(days=7)).strftime('%Y-%m-%d')"/>
+            <field name="rate">26.85</field>
+        </record>
+
+    </data>
+</odoo>

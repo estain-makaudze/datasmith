@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fdms_device_view_list" model="ir.ui.view">
+        <field name="name">l10n_zw.fdms.device.list</field>
+        <field name="model">l10n_zw.fdms.device</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="device_id"/>
+                <field name="serial_number"/>
+                <field name="mode"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'registered'"
+                       decoration-danger="state == 'blocked'"/>
+                <field name="receipt_global_no"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="fdms_device_view_form" model="ir.ui.view">
+        <field name="name">l10n_zw.fdms.device.form</field>
+        <field name="model">l10n_zw.fdms.device</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_register" type="object" string="Register with ZIMRA"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_open_day" type="object" string="Open Fiscal Day"
+                            invisible="state != 'registered' or current_fiscal_day_id"/>
+                    <button name="action_close_day" type="object" string="Close Fiscal Day"
+                            invisible="not current_fiscal_day_id"/>
+                    <button name="action_get_config" type="object" string="Refresh Config"
+                            invisible="state != 'registered'"/>
+                    <button name="action_get_status" type="object" string="Get Status"
+                            invisible="state != 'registered'"/>
+                    <button name="action_ping" type="object" string="Ping"
+                            invisible="state != 'registered'"/>
+                    <button name="action_resync" type="object" string="Resync Counters"
+                            invisible="state != 'registered'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_documents" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="document_count" widget="statinfo" string="Documents"/>
+                        </button>
+                        <button name="action_view_fiscal_days" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="fiscal_day_count" widget="statinfo" string="Fiscal Days"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group string="Device">
+                            <field name="active" invisible="1"/>
+                            <field name="name"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="device_id" readonly="state != 'draft'"/>
+                            <field name="serial_number" readonly="state != 'draft'"/>
+                            <field name="activation_key" invisible="state == 'registered'" password="True"/>
+                            <field name="model_name"/>
+                            <field name="model_version"/>
+                            <field name="mode" readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Taxpayer">
+                            <field name="taxpayer_name" readonly="1"/>
+                            <field name="taxpayer_tin" readonly="1"/>
+                            <field name="taxpayer_vat_number" readonly="1"/>
+                            <field name="branch_name" readonly="1"/>
+                            <field name="operating_mode" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Fiscal State">
+                            <field name="current_fiscal_day_id" readonly="1"/>
+                            <field name="receipt_global_no" readonly="1"/>
+                            <field name="last_receipt_hash" readonly="1"/>
+                        </group>
+                        <group string="Certificate">
+                            <field name="key_id" readonly="1"/>
+                            <field name="certificate_id" readonly="1"/>
+                            <field name="certificate_valid_till" readonly="1"/>
+                            <field name="qr_url" readonly="1"/>
+                            <field name="tax_payer_day_max_hrs" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="fdms_device_action" model="ir.actions.act_window">
+        <field name="name">Fiscal Devices</field>
+        <field name="res_model">l10n_zw.fdms.device</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your ZIMRA fiscal device</p>
+            <p>Enter the Device ID, serial number and activation key from the
+               ZIMRA taxpayer portal, then register it to start fiscalising.</p>
+        </field>
+    </record>
+</odoo>

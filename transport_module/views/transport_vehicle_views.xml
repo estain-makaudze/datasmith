@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_vehicle_view_list" model="ir.ui.view">
+            <field name="name">transport.vehicle.list</field>
+            <field name="model">transport.vehicle</field>
+            <field name="arch" type="xml">
+                <list decoration-muted="state == 'retired'"
+                      decoration-warning="state == 'workshop'">
+                    <field name="name"/>
+                    <field name="registration"/>
+                    <field name="vehicle_type"/>
+                    <field name="make" optional="show"/>
+                    <field name="model_name" optional="show"/>
+                    <field name="seat_capacity" optional="show"/>
+                    <field name="route_id"/>
+                    <field name="default_driver_id"/>
+                    <field name="company_currency_id" column_invisible="1"/>
+                    <field name="total_takings"/>
+                    <field name="total_expenses" optional="show"/>
+                    <field name="net_earnings" optional="show"/>
+                    <field name="break_even_progress" optional="show"
+                           widget="progressbar"/>
+                    <field name="next_service_date" optional="show"
+                           widget="remaining_days"/>
+                    <field name="service_due" column_invisible="1"/>
+                    <field name="state" widget="badge"
+                           decoration-success="state == 'active'"
+                           decoration-warning="state == 'workshop'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="transport_vehicle_view_form" model="ir.ui.view">
+            <field name="name">transport.vehicle.form</field>
+            <field name="model">transport.vehicle</field>
+            <field name="arch" type="xml">
+                <form string="Vehicle">
+                    <header>
+                        <button name="action_send_to_service" type="object"
+                                string="Send to Service" class="btn-primary"
+                                invisible="state != 'active'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="active,workshop"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_cashups" type="object"
+                                    class="oe_stat_button" icon="fa-money">
+                                <field name="cashup_count" widget="statinfo"
+                                       string="Cash-Ups"/>
+                            </button>
+                            <button name="action_view_services" type="object"
+                                    class="oe_stat_button" icon="fa-wrench">
+                                <field name="service_count" widget="statinfo"
+                                       string="Services"/>
+                            </button>
+                        </div>
+                        <widget name="web_ribbon" title="Service Due"
+                                bg_color="text-bg-warning"
+                                invisible="not service_due"/>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <field name="image_1920" widget="image" class="oe_avatar"/>
+                        <div class="oe_title">
+                            <h1><field name="registration" placeholder="e.g. AEZ 4821"/></h1>
+                            <h3><field name="name" readonly="1"/></h3>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="vehicle_type"/>
+                                <field name="make"/>
+                                <field name="model_name"/>
+                                <field name="year"/>
+                                <field name="seat_capacity"/>
+                                <field name="active" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="route_id"/>
+                                <field name="default_driver_id"/>
+                                <field name="current_odometer"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Purchase">
+                                <field name="purchase_date"/>
+                                <field name="company_currency_id" invisible="1"/>
+                                <field name="purchase_price"/>
+                                <field name="purchased_from"/>
+                            </group>
+                            <group string="Service Plan">
+                                <field name="next_service_date"/>
+                                <field name="next_service_odometer"/>
+                                <field name="service_due" invisible="1"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Financials">
+                                <field name="total_takings"/>
+                                <field name="total_expenses"/>
+                                <field name="total_service_cost"/>
+                                <field name="net_earnings" class="fw-bold"/>
+                            </group>
+                            <group string="Break-Even">
+                                <field name="amount_to_break_even"/>
+                                <field name="break_even_progress"
+                                       widget="progressbar"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Cash-Ups" name="cashups">
+                                <field name="cashup_ids" readonly="1">
+                                    <list>
+                                        <field name="date"/>
+                                        <field name="driver_id"/>
+                                        <field name="route_id" optional="show"/>
+                                        <field name="currency_id"
+                                               column_invisible="1"/>
+                                        <field name="gross_takings"/>
+                                        <field name="total_expenses"/>
+                                        <field name="net_amount"/>
+                                        <field name="state" widget="badge"
+                                               decoration-info="state == 'confirmed'"
+                                               decoration-success="state == 'posted'"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Services" name="services">
+                                <field name="service_ids"
+                                       context="{'default_odometer': current_odometer}">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="date_sent"/>
+                                        <field name="description"/>
+                                        <field name="workshop_name"
+                                               optional="show"/>
+                                        <field name="date_returned"
+                                               optional="show"/>
+                                        <field name="next_service_date"
+                                               optional="hide"/>
+                                        <field name="currency_id"
+                                               column_invisible="1"/>
+                                        <field name="total_cost"/>
+                                        <field name="state" widget="badge"
+                                               decoration-warning="state == 'in_service'"
+                                               decoration-info="state == 'done'"
+                                               decoration-success="state == 'posted'"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes" name="notes">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="transport_vehicle_view_kanban" model="ir.ui.view">
+            <field name="name">transport.vehicle.kanban</field>
+            <field name="model">transport.vehicle</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="company_currency_id"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="d-flex">
+                                <field name="image_128" widget="image"
+                                       class="o_kanban_image me-2"/>
+                                <div>
+                                    <strong><field name="registration"/></strong>
+                                    <div><field name="make"/> <field name="model_name"/></div>
+                                    <div><field name="route_id"/></div>
+                                    <div class="mt-1">
+                                        <field name="state" widget="label_selection"
+                                               options="{'classes': {'active': 'success', 'workshop': 'warning', 'retired': 'default'}}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="action_transport_vehicle" model="ir.actions.act_window">
+            <field name="name">Vehicles</field>
+            <field name="res_model">transport.vehicle</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Register your first kombi or bus</p>
+                <p>Track each vehicle's route, crew, odometer and daily takings.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

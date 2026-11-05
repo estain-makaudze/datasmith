@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <menuitem id="menu_freight_root"
+                  name="Freight"
+                  web_icon="freight_module,static/description/icon.png"
+                  groups="group_freight_user"
+                  sequence="35"/>
+
+        <!-- Operations -->
+        <menuitem id="menu_freight_operations"
+                  name="Operations"
+                  parent="menu_freight_root"
+                  sequence="10"/>
+        <menuitem id="menu_freight_consignments"
+                  name="Consignments"
+                  parent="menu_freight_operations"
+                  action="action_freight_consignment"
+                  sequence="10"/>
+
+        <!-- Clients -->
+        <menuitem id="menu_freight_partners"
+                  name="Partners"
+                  parent="menu_freight_root"
+                  sequence="20"/>
+        <menuitem id="menu_freight_clients"
+                  name="Clients"
+                  parent="menu_freight_partners"
+                  action="action_freight_client"
+                  sequence="10"/>
+        <menuitem id="menu_freight_transporters"
+                  name="Transporters"
+                  parent="menu_freight_partners"
+                  action="action_freight_transporter"
+                  sequence="20"/>
+
+        <!-- Reporting (placeholder) -->
+        <menuitem id="menu_freight_reporting"
+                  name="Reporting"
+                  parent="menu_freight_root"
+                  sequence="40"/>
+
+        <!-- Configuration (manager-gated) -->
+        <menuitem id="menu_freight_configuration"
+                  name="Configuration"
+                  parent="menu_freight_root"
+                  groups="group_freight_manager"
+                  sequence="90"/>
+        <menuitem id="menu_freight_ports"
+                  name="Ports"
+                  parent="menu_freight_configuration"
+                  action="action_freight_port"
+                  sequence="10"/>
+        <menuitem id="menu_freight_hs_codes"
+                  name="HS Codes"
+                  parent="menu_freight_configuration"
+                  action="action_freight_hs_code"
+                  sequence="20"/>
+        <menuitem id="menu_freight_disbursement_categories"
+                  name="Disbursement Categories"
+                  parent="menu_freight_configuration"
+                  action="action_freight_disbursement_category"
+                  sequence="30"/>
+        <menuitem id="menu_freight_settings"
+                  name="Settings"
+                  parent="menu_freight_configuration"
+                  action="action_freight_config_settings"
+                  sequence="90"/>
+
+    </data>
+</odoo>

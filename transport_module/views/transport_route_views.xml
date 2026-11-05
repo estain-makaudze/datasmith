@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_route_view_list" model="ir.ui.view">
+            <field name="name">transport.route.list</field>
+            <field name="model">transport.route</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="route_name"/>
+                    <field name="origin" optional="show"/>
+                    <field name="destination" optional="show"/>
+                    <field name="distance_km" optional="hide"/>
+                    <field name="standard_fare_usd"/>
+                    <field name="standard_fare_zwg"/>
+                    <field name="expected_trips_per_day" optional="show"/>
+                    <field name="vehicle_count" string="Vehicles"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="transport_route_view_form" model="ir.ui.view">
+            <field name="name">transport.route.form</field>
+            <field name="model">transport.route</field>
+            <field name="arch" type="xml">
+                <form string="Route">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_cashups" type="object"
+                                    class="oe_stat_button" icon="fa-money">
+                                <field name="cashup_count" widget="statinfo"
+                                       string="Cash-Ups"/>
+                            </button>
+                        </div>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                            <h2><field name="route_name" placeholder="e.g. Mbare – CBD"/></h2>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="origin"/>
+                                <field name="destination"/>
+                                <field name="distance_km"/>
+                                <field name="active" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="standard_fare_usd"/>
+                                <field name="standard_fare_zwg"/>
+                                <field name="expected_trips_per_day"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Vehicles on this Route" name="vehicles">
+                                <field name="vehicle_ids" readonly="1">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="registration"/>
+                                        <field name="vehicle_type"/>
+                                        <field name="default_driver_id"/>
+                                        <field name="state"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_transport_route" model="ir.actions.act_window">
+            <field name="name">Routes</field>
+            <field name="res_model">transport.route</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Define your first route</p>
+                <p>Routes carry the standard fares and expected trips used on
+                   cash-up sheets and reports.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

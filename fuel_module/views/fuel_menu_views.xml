@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <menuitem id="menu_fuel_root"
+                  name="Fuel Stations"
+                  web_icon="fuel_module,static/description/icon.png"
+                  groups="group_fuel_attendant"
+                  sequence="36"/>
+
+        <!-- Operations. The shift document lands here in Task 3. -->
+        <menuitem id="menu_fuel_operations" name="Operations"
+                  parent="menu_fuel_root" sequence="10"/>
+        <menuitem id="menu_fuel_shifts" name="Shifts"
+                  parent="menu_fuel_operations" action="action_fuel_shift" sequence="10"/>
+        <menuitem id="menu_fuel_prices" name="Pump Prices"
+                  parent="menu_fuel_operations" action="action_fuel_price" sequence="20"/>
+
+        <!-- Wet Stock -->
+        <menuitem id="menu_fuel_stock" name="Wet Stock"
+                  parent="menu_fuel_root" groups="group_fuel_supervisor" sequence="20"/>
+        <menuitem id="menu_fuel_tanks" name="Tanks"
+                  parent="menu_fuel_stock" action="action_fuel_tank" sequence="10"/>
+        <menuitem id="menu_fuel_dip_test" name="Test a Dip"
+                  parent="menu_fuel_stock" action="action_fuel_dip_test" sequence="20"/>
+
+        <!-- Fleet. Fills up in Release 2. -->
+        <menuitem id="menu_fuel_fleet" name="Fleet"
+                  parent="menu_fuel_root" groups="group_fuel_supervisor" sequence="30"/>
+
+        <!-- Reporting. Fills up in Task 6. -->
+        <menuitem id="menu_fuel_reporting" name="Reporting"
+                  parent="menu_fuel_root" groups="group_fuel_manager" sequence="40"/>
+
+        <!-- Configuration -->
+        <menuitem id="menu_fuel_configuration" name="Configuration"
+                  parent="menu_fuel_root" groups="group_fuel_manager" sequence="90"/>
+        <menuitem id="menu_fuel_sites" name="Sites"
+                  parent="menu_fuel_configuration" action="action_fuel_site" sequence="10"/>
+        <menuitem id="menu_fuel_products" name="Fuel Grades"
+                  parent="menu_fuel_configuration" action="action_fuel_product" sequence="20"/>
+        <menuitem id="menu_fuel_pumps" name="Pumps"
+                  parent="menu_fuel_configuration" action="action_fuel_pump" sequence="30"/>
+        <menuitem id="menu_fuel_nozzles" name="Nozzles"
+                  parent="menu_fuel_configuration" action="action_fuel_nozzle" sequence="40"/>
+        <menuitem id="menu_fuel_attendants" name="Attendants"
+                  parent="menu_fuel_configuration" action="action_fuel_attendant" sequence="50"/>
+        <menuitem id="menu_fuel_payment_methods" name="Payment Methods"
+                  parent="menu_fuel_configuration" action="action_fuel_payment_method"
+                  sequence="60"/>
+        <menuitem id="menu_fuel_settings" name="Settings"
+                  parent="menu_fuel_configuration"
+                  action="action_fuel_config_settings"
+                  sequence="90"/>
+
+    </data>
+</odoo>

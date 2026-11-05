@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_payment_scheme_view_list" model="ir.ui.view">
+            <field name="name">transport.payment.scheme.list</field>
+            <field name="model">transport.payment.scheme</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="scheme_type"/>
+                    <field name="payment_period"/>
+                    <field name="wage_amount"/>
+                    <field name="wage_currency_id"/>
+                    <field name="commission_percent"/>
+                    <field name="deduct_unpaid_leave" optional="show"/>
+                    <field name="driver_count" string="Crew"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="transport_payment_scheme_view_form" model="ir.ui.view">
+            <field name="name">transport.payment.scheme.form</field>
+            <field name="model">transport.payment.scheme</field>
+            <field name="arch" type="xml">
+                <form string="Payment Scheme">
+                    <sheet>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <div class="oe_title">
+                            <h1><field name="name" placeholder="e.g. Weekly Wage + 10% Commission"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="scheme_type" widget="radio"/>
+                                <field name="payment_period"/>
+                                <field name="active" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="wage_amount"
+                                       invisible="scheme_type == 'commission'"
+                                       required="scheme_type in ('fixed', 'hybrid')"/>
+                                <field name="wage_currency_id"
+                                       invisible="scheme_type == 'commission'"/>
+                                <field name="commission_percent"
+                                       invisible="scheme_type == 'fixed'"
+                                       required="scheme_type in ('commission', 'hybrid')"/>
+                                <field name="deduct_unpaid_leave"
+                                       invisible="scheme_type == 'commission'"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Crew on this Scheme" name="drivers">
+                                <field name="driver_ids" readonly="1">
+                                    <list>
+                                        <field name="full_name"/>
+                                        <field name="driver_role"/>
+                                        <field name="default_vehicle_id"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_transport_payment_scheme" model="ir.actions.act_window">
+            <field name="name">Payment Schemes</field>
+            <field name="res_model">transport.payment.scheme</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Create a payment scheme</p>
+                <p>Fixed wage, commission on cash collected, or a hybrid —
+                   paid weekly, fortnightly or monthly.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="freight_disbursement_category_view_list" model="ir.ui.view">
+            <field name="name">freight.disbursement.category.list</field>
+            <field name="model">freight.disbursement.category</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="kind"/>
+                    <field name="billable_default"/>
+                    <field name="show_on_status_page"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="freight_disbursement_category_view_form" model="ir.ui.view">
+            <field name="name">freight.disbursement.category.form</field>
+            <field name="model">freight.disbursement.category</field>
+            <field name="arch" type="xml">
+                <form string="Disbursement Category">
+                    <sheet>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <div class="oe_title">
+                            <h2><field name="code" placeholder="DUTY"/></h2>
+                            <h1><field name="name" placeholder="e.g. Customs Duty"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="kind"/>
+                                <field name="sequence"/>
+                                <field name="active" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="billable_default"/>
+                                <field name="show_on_status_page"/>
+                            </group>
+                        </group>
+                        <group string="Notes">
+                            <field name="notes" nolabel="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_freight_disbursement_category" model="ir.actions.act_window">
+            <field name="name">Disbursement Categories</field>
+            <field name="res_model">freight.disbursement.category</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Add a disbursement category</p>
+                <p>Every out-of-pocket payment captured by a clerk is classified under
+                   one of these — duty, VAT, port, storage, transporter, scanning, escort.
+                   Billable by default means the clerk only has to untick the exceptions.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

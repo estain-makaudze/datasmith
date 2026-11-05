@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_cashup_view_list" model="ir.ui.view">
+            <field name="name">transport.cashup.list</field>
+            <field name="model">transport.cashup</field>
+            <field name="arch" type="xml">
+                <list decoration-info="state == 'draft'"
+                      decoration-success="state == 'posted'"
+                      decoration-muted="state == 'cancelled'">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="shift" optional="show"/>
+                    <field name="vehicle_id"/>
+                    <field name="route_id"/>
+                    <field name="driver_id"/>
+                    <field name="trips_count" optional="hide"/>
+                    <field name="currency_id" column_invisible="1"/>
+                    <field name="gross_takings" sum="Total"/>
+                    <field name="total_expenses" sum="Total"/>
+                    <field name="net_amount" sum="Total"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-warning="state == 'confirmed'"
+                           decoration-success="state == 'posted'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="transport_cashup_view_form" model="ir.ui.view">
+            <field name="name">transport.cashup.form</field>
+            <field name="model">transport.cashup</field>
+            <field name="arch" type="xml">
+                <form string="Cash-Up Sheet">
+                    <header>
+                        <button name="action_confirm" type="object" string="Confirm"
+                                class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_post" type="object" string="Post to Accounting"
+                                class="btn-primary" invisible="state != 'confirmed'"
+                                groups="transport_module.group_transport_manager"/>
+                        <button name="action_cancel" type="object" string="Cancel"
+                                invisible="state not in ('draft', 'confirmed')"/>
+                        <button name="action_draft" type="object" string="Reset to Draft"
+                                invisible="state != 'cancelled'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,confirmed,posted"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_move" type="object"
+                                    class="oe_stat_button" icon="fa-book"
+                                    invisible="not move_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Journal</span>
+                                    <span class="o_stat_text">Entry</span>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="date" readonly="state != 'draft'"/>
+                                <field name="shift" readonly="state != 'draft'"/>
+                                <field name="vehicle_id" readonly="state != 'draft'"/>
+                                <field name="route_id" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="driver_id" readonly="state != 'draft'"/>
+                                <field name="conductor_id" readonly="state != 'draft'"/>
+                                <field name="currency_id" readonly="state != 'draft'"/>
+                                <field name="trips_count" readonly="state != 'draft'"/>
+                                <field name="move_id" invisible="1"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="gross_takings" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="total_expenses"/>
+                                <field name="net_amount" class="fw-bold"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Operating Expenses" name="expenses">
+                                <field name="expense_line_ids" readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="expense_type_id"/>
+                                        <field name="description"/>
+                                        <field name="reference"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="amount" sum="Total"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes" name="notes">
+                                <field name="notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="transport_cashup_view_kanban" model="ir.ui.view">
+            <field name="name">transport.cashup.kanban</field>
+            <field name="model">transport.cashup</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" class="o_kanban_small_column">
+                    <field name="currency_id"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="d-flex justify-content-between">
+                                <strong><field name="name"/></strong>
+                                <field name="date"/>
+                            </div>
+                            <div>
+                                <field name="vehicle_id"/> · <field name="driver_id"/>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span><field name="route_id"/></span>
+                                <strong><field name="net_amount" widget="monetary"/></strong>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="transport_cashup_view_calendar" model="ir.ui.view">
+            <field name="name">transport.cashup.calendar</field>
+            <field name="model">transport.cashup</field>
+            <field name="arch" type="xml">
+                <calendar date_start="date" color="vehicle_id" mode="week">
+                    <field name="vehicle_id"/>
+                    <field name="driver_id"/>
+                    <field name="gross_takings"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="transport_cashup_view_graph" model="ir.ui.view">
+            <field name="name">transport.cashup.graph</field>
+            <field name="model">transport.cashup</field>
+            <field name="arch" type="xml">
+                <graph string="Takings Analysis" type="bar" stacked="1">
+                    <field name="route_id"/>
+                    <field name="date" interval="day"/>
+                    <field name="gross_takings" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <record id="transport_cashup_view_pivot" model="ir.ui.view">
+            <field name="name">transport.cashup.pivot</field>
+            <field name="model">transport.cashup</field>
+            <field name="arch" type="xml">
+                <pivot string="Takings Analysis">
+                    <field name="vehicle_id" type="row"/>
+                    <field name="date" interval="day" type="col"/>
+                    <field name="gross_takings" type="measure"/>
+                    <field name="total_expenses" type="measure"/>
+                    <field name="net_amount" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <record id="transport_cashup_view_search" model="ir.ui.view">
+            <field name="name">transport.cashup.search</field>
+            <field name="model">transport.cashup</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="vehicle_id"/>
+                    <field name="driver_id"/>
+                    <field name="route_id"/>
+                    <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="Confirmed" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                    <filter string="Posted" name="posted" domain="[('state', '=', 'posted')]"/>
+                    <separator/>
+                    <filter string="This Week" name="this_week"
+                            domain="[('date', '&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                    <group>
+                        <filter string="Vehicle" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                        <filter string="Driver" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                        <filter string="Route" name="group_route" context="{'group_by': 'route_id'}"/>
+                        <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
+                        <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_transport_cashup" model="ir.actions.act_window">
+            <field name="name">Cash-Up Sheets</field>
+            <field name="res_model">transport.cashup</field>
+            <field name="view_mode">list,kanban,form,calendar,graph,pivot</field>
+            <field name="search_view_id" ref="transport_cashup_view_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Capture the first cash-up sheet</p>
+                <p>One sheet per vehicle per day (or shift): cash collected,
+                   operating expenses, and the net amount banked. Posting a
+                   sheet creates the journal entry in Accounting.</p>
+            </field>
+        </record>
+
+        <record id="action_transport_cashup_analysis" model="ir.actions.act_window">
+            <field name="name">Takings Analysis</field>
+            <field name="res_model">transport.cashup</field>
+            <field name="view_mode">pivot,graph</field>
+            <field name="search_view_id" ref="transport_cashup_view_search"/>
+            <field name="domain">[('state', '!=', 'cancelled')]</field>
+        </record>
+
+    </data>
+</odoo>

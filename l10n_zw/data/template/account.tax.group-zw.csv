@@ -1,0 +1,6 @@
+"id","name","country_id","tax_receivable_account_id","tax_payable_account_id"
+"tax_group_zw_155","VAT 15.5%","base.zw","zw1400","zw2210"
+"tax_group_zw_15","VAT 15%","base.zw","zw1400","zw2210"
+"tax_group_zw_0","VAT 0%","base.zw","zw1400","zw2210"
+"tax_group_zw_exempt","VAT Exempt","base.zw","zw1400","zw2210"
+"tax_group_zw_wht","Withholding Tax","base.zw","zw1410","zw2210"

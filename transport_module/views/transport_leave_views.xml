@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="transport_leave_view_list" model="ir.ui.view">
+            <field name="name">transport.leave.list</field>
+            <field name="model">transport.leave</field>
+            <field name="arch" type="xml">
+                <list decoration-success="state == 'approved'"
+                      decoration-muted="state == 'refused'">
+                    <field name="name"/>
+                    <field name="driver_id"/>
+                    <field name="leave_type_id"/>
+                    <field name="paid" optional="show"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="days" sum="Total"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'submitted'"
+                           decoration-success="state == 'approved'"
+                           decoration-danger="state == 'refused'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="transport_leave_view_form" model="ir.ui.view">
+            <field name="name">transport.leave.form</field>
+            <field name="model">transport.leave</field>
+            <field name="arch" type="xml">
+                <form string="Leave Request">
+                    <header>
+                        <button name="action_submit" type="object" string="Submit"
+                                class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_approve" type="object" string="Approve"
+                                class="btn-primary" invisible="state != 'submitted'"
+                                groups="transport_module.group_transport_manager"/>
+                        <button name="action_refuse" type="object" string="Refuse"
+                                invisible="state not in ('submitted', 'approved')"
+                                groups="transport_module.group_transport_manager"/>
+                        <button name="action_draft" type="object" string="Reset to Draft"
+                                invisible="state != 'refused'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,submitted,approved"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="driver_id" readonly="state != 'draft'"/>
+                                <field name="leave_type_id" readonly="state != 'draft'"/>
+                                <field name="paid"/>
+                                <field name="reason"/>
+                            </group>
+                            <group>
+                                <field name="date_from" readonly="state != 'draft'"/>
+                                <field name="date_to" readonly="state != 'draft'"/>
+                                <field name="days"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="transport_leave_view_calendar" model="ir.ui.view">
+            <field name="name">transport.leave.calendar</field>
+            <field name="model">transport.leave</field>
+            <field name="arch" type="xml">
+                <calendar date_start="date_from" date_stop="date_to"
+                          color="driver_id" mode="month">
+                    <field name="driver_id"/>
+                    <field name="leave_type_id"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="action_transport_leave" model="ir.actions.act_window">
+            <field name="name">Leave Requests</field>
+            <field name="res_model">transport.leave</field>
+            <field name="view_mode">list,form,calendar</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No leave requests yet</p>
+                <p>Capture and approve crew leave. Approved unpaid absence
+                   automatically reduces the fixed wage in payment runs.</p>
+            </field>
+        </record>
+
+        <record id="transport_leave_type_view_list" model="ir.ui.view">
+            <field name="name">transport.leave.type.list</field>
+            <field name="model">transport.leave.type</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="name"/>
+                    <field name="paid"/>
+                    <field name="requires_allocation"/>
+                    <field name="default_annual_days"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_transport_leave_type" model="ir.actions.act_window">
+            <field name="name">Leave Types</field>
+            <field name="res_model">transport.leave.type</field>
+            <field name="view_mode">list</field>
+        </record>
+
+        <record id="transport_leave_allocation_view_list" model="ir.ui.view">
+            <field name="name">transport.leave.allocation.list</field>
+            <field name="model">transport.leave.allocation</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="driver_id"/>
+                    <field name="leave_type_id"/>
+                    <field name="year"/>
+                    <field name="days_allocated"/>
+                    <field name="days_taken"/>
+                    <field name="days_remaining"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_transport_leave_allocation" model="ir.actions.act_window">
+            <field name="name">Leave Allocations</field>
+            <field name="res_model">transport.leave.allocation</field>
+            <field name="view_mode">list</field>
+        </record>
+
+    </data>
+</odoo>

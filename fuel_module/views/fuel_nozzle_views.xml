@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_fuel_nozzle_list" model="ir.ui.view">
+            <field name="name">fuel.nozzle.list</field>
+            <field name="model">fuel.nozzle</field>
+            <field name="arch" type="xml">
+                <list string="Nozzles" editable="bottom">
+                    <field name="site_id" readonly="1"/>
+                    <field name="pump_id"/>
+                    <field name="name"/>
+                    <field name="tank_id"/>
+                    <field name="product_id" readonly="1"/>
+                    <field name="current_totaliser"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_fuel_nozzle_form" model="ir.ui.view">
+            <field name="name">fuel.nozzle.form</field>
+            <field name="model">fuel.nozzle</field>
+            <field name="arch" type="xml">
+                <form string="Nozzle">
+                    <sheet>
+                        <field name="active" invisible="1"/>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1><field name="name" placeholder="e.g. A"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="pump_id"/>
+                                <field name="site_id"/>
+                            </group>
+                            <group>
+                                <field name="tank_id"/>
+                                <field name="product_id"/>
+                                <field name="current_totaliser"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_fuel_nozzle_search" model="ir.ui.view">
+            <field name="name">fuel.nozzle.search</field>
+            <field name="model">fuel.nozzle</field>
+            <field name="arch" type="xml">
+                <search string="Nozzles">
+                    <field name="name"/>
+                    <field name="pump_id"/>
+                    <field name="tank_id"/>
+                    <field name="site_id"/>
+                    <group>
+                        <filter name="group_site" string="Site" context="{'group_by': 'site_id'}"/>
+                        <filter name="group_pump" string="Pump" context="{'group_by': 'pump_id'}"/>
+                        <filter name="group_tank" string="Tank" context="{'group_by': 'tank_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_fuel_nozzle" model="ir.actions.act_window">
+            <field name="name">Nozzles</field>
+            <field name="res_model">fuel.nozzle</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+    </data>
+</odoo>

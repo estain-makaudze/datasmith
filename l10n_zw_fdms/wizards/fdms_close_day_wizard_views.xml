@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fdms_close_day_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n_zw.fdms.close.day.wizard.form</field>
+        <field name="model">l10n_zw.fdms.close.day.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="device_id" readonly="1"/>
+                    <field name="fiscal_day_id" readonly="1"/>
+                    <field name="document_count"/>
+                    <field name="unsent_count"/>
+                    <field name="force" invisible="unsent_count == 0"/>
+                </group>
+                <div class="alert alert-warning" role="alert" invisible="unsent_count == 0">
+                    Some receipts of this fiscal day have not been submitted to ZIMRA
+                    yet. Closing now may cause the server-side day close to fail.
+                </div>
+                <label for="counters_preview" string="Day Counters"/>
+                <field name="counters_preview" readonly="1"/>
+                <footer>
+                    <button name="action_close" type="object" string="Close Fiscal Day"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_fuel_attendant_list" model="ir.ui.view">
+            <field name="name">fuel.attendant.list</field>
+            <field name="model">fuel.attendant</field>
+            <field name="arch" type="xml">
+                <list string="Attendants">
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="site_id"/>
+                    <field name="phone"/>
+                    <field name="is_supervisor"/>
+                    <field name="user_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_fuel_attendant_form" model="ir.ui.view">
+            <field name="name">fuel.attendant.form</field>
+            <field name="model">fuel.attendant</field>
+            <field name="arch" type="xml">
+                <form string="Attendant">
+                    <sheet>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <field name="active" invisible="1"/>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1><field name="name" placeholder="e.g. Tendai Moyo"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="site_id"/>
+                                <field name="code"/>
+                                <field name="is_supervisor"/>
+                            </group>
+                            <group>
+                                <field name="phone"/>
+                                <field name="national_id"/>
+                                <field name="user_id"/>
+                                <field name="partner_id"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_fuel_attendant" model="ir.actions.act_window">
+            <field name="name">Attendants</field>
+            <field name="res_model">fuel.attendant</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Add the people on the forecourt</p>
+                <p>Every attendant gets an accounting partner, so a till shortage can be
+                   carried against their name.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

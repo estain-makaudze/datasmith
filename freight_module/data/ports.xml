@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Road borders (Zimbabwe) -->
+        <record id="port_beitbridge" model="freight.port">
+            <field name="name">Beitbridge Border Post</field>
+            <field name="code">BBR</field>
+            <field name="mode">road</field>
+            <field name="free_days">5</field>
+            <field name="demurrage_daily_rate">35.0</field>
+        </record>
+        <record id="port_chirundu" model="freight.port">
+            <field name="name">Chirundu Border Post</field>
+            <field name="code">CHR</field>
+            <field name="mode">road</field>
+            <field name="free_days">5</field>
+            <field name="demurrage_daily_rate">30.0</field>
+        </record>
+        <record id="port_forbes" model="freight.port">
+            <field name="name">Forbes / Machipanda Border Post</field>
+            <field name="code">FBS</field>
+            <field name="mode">road</field>
+            <field name="free_days">5</field>
+            <field name="demurrage_daily_rate">25.0</field>
+        </record>
+        <record id="port_plumtree" model="freight.port">
+            <field name="name">Plumtree Border Post</field>
+            <field name="code">PLM</field>
+            <field name="mode">road</field>
+            <field name="free_days">5</field>
+            <field name="demurrage_daily_rate">25.0</field>
+        </record>
+        <record id="port_vicfalls" model="freight.port">
+            <field name="name">Victoria Falls Border Post</field>
+            <field name="code">VFA</field>
+            <field name="mode">road</field>
+            <field name="free_days">5</field>
+            <field name="demurrage_daily_rate">25.0</field>
+        </record>
+        <record id="port_kazungula" model="freight.port">
+            <field name="name">Kazungula Border Post</field>
+            <field name="code">KZG</field>
+            <field name="mode">road</field>
+            <field name="free_days">5</field>
+            <field name="demurrage_daily_rate">25.0</field>
+        </record>
+
+        <!-- Sea port (regional, South Africa) -->
+        <record id="port_durban" model="freight.port">
+            <field name="name">Durban Port</field>
+            <field name="code">DUR</field>
+            <field name="mode">sea</field>
+            <field name="free_days">7</field>
+            <field name="demurrage_daily_rate">75.0</field>
+        </record>
+
+        <!-- Airport -->
+        <record id="port_rgm" model="freight.port">
+            <field name="name">Robert G. Mugabe International Airport</field>
+            <field name="code">RGM</field>
+            <field name="mode">air</field>
+            <field name="free_days">3</field>
+            <field name="demurrage_daily_rate">50.0</field>
+        </record>
+
+    </data>
+</odoo>

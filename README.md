@@ -1,79 +1,67 @@
-# Zimpreneur × Datasmith
+# Datasmith — Odoo 19 modules
 
 Author: **Estain Makaudze** · estainmakaudze@gmail.com
 
-A focused pair of Odoo 19 integration modules built to show the depth of integration
-work I can take on as a subcontract engineer — a Sage 300 bridge and a Claude CLI
-backend for Odoo's native AI module. Each is production-shaped (config, mapping,
-service, hook, queue, retry, audit log, tests), demo-ready, and self-contained
-enough to read top-to-bottom in 20 minutes.
+A set of production-shaped Odoo 19 modules — two bespoke integrations (Sage 300
+bridge + Claude AI backend) plus five Zimbabwe-specific business verticals I've
+built. Each is independent; install only what you need.
 
-Live multi-DB demo server (one DB per module): **https://datasmith-demo.zimpreneur.com**
+Live multi-DB demo server (one database per module) with pre-loaded data:
+**https://datasmith-demo.zimpreneur.com** · login `admin / admin`
 
-## Modules in this repo
+## Modules
 
-### 1. `sage_bridge` — Odoo 19 → Sage 300 integration
+### Integrations (built against the Datasmith conversation)
 
-Posts customer invoices from Odoo to Sage 300 as AR batches via Sage's REST Web API.
-Mapping tables for idempotency, queued submission with exponential-backoff retry,
-dead-letter handling, full audit log of every HTTP round-trip.
+| Module | What it does |
+|---|---|
+| [`sage_bridge`](./sage_bridge) | Posts Odoo customer invoices to Sage 300 as AR batches via Sage's REST Web API. Mapping tables for idempotency, queued submission with exponential-backoff retry, dead-letter handling, full audit log of every HTTP round-trip. Ships with a mock-Sage server so the demo works without a real Sage install. |
+| [`ai_claude_cli`](./ai_claude_cli) | Adds a third provider to Odoo 19 Enterprise's native AI (Settings → AI → Providers): "Use your own Claude subscription". Monkey-patches `LLMApiService._request_llm` to route every Odoo AI call through the local `claude` CLI with scoped `Bash(psql *)` tool access. Zero per-call API cost, data never leaves the server. |
+| [`mock_sage_server`](./mock_sage_server) | A Flask app mirroring Sage 300's REST Web API contract. Not an Odoo module — a standalone companion for `sage_bridge`. Reusable for any Sage integration dev work where a real Sage licence isn't at hand. |
 
-**Ships with an external mock-Sage server** (`mock_sage_server/`) that mirrors the
-Sage 300 Web API contract exactly. Means the full flow works end-to-end without
-needing a real Sage install — real HTTPS calls, real OData responses, real auth,
-all visible in `curl`, Postman, or browser dev tools.
+### Zimbabwe vertical modules
 
-### 2. `ai_claude_cli` — Claude backend for Odoo's native AI
-
-Adds a third provider to **Settings → AI → Providers** ("Use your own Claude
-subscription"). Routes every Odoo AI feature — Ask AI, Agents, Pivot/chart
-suggestions, the full Enterprise AI surface — through the local `claude` CLI
-instead of an API key.
-
-Zero new UI. Zero new models. Pure inheritance on Odoo's `ai.provider` dispatcher.
-Odoo 19 Enterprise required (the `ai` module being extended is Enterprise-only).
-
-### 3. `mock_sage_server` — companion Flask service
-
-Not an Odoo module. A small Flask app that mimics Sage 300's Web API on these
-endpoints:
-
-- `GET  /v1.0/-/{company}/AR/Customers`
-- `POST /v1.0/-/{company}/AR/InvoiceBatches`
-- `POST /v1.0/-/{company}/AR/InvoiceEntries`
-- `POST /v1.0/-/{company}/AR/InvoiceBatches/{id}/Post`
-- `GET  /v1.0/-/{company}/AR/InvoiceBatches/{id}`
-
-Authentication via HTTP Basic Auth (demo/demo123). SQLite backing store so pushed
-invoices persist and are queryable. Run standalone or deployed next to the demo
-Odoo instance.
-
-## Why "Zimpreneur × Datasmith"
-
-Zimpreneur is my Zimbabwe-vertical Odoo product line; Datasmith is the context
-this pair was prepared for. The naming makes the intent explicit: these modules
-were built against the integration patterns Datasmith's Odoo partner work actually
-uses.
+| Module | Vertical |
+|---|---|
+| [`fuel_module`](./fuel_module) | Fuel stations — sites, pumps, nozzles, tanks, attendants, shifts, cash-ups. |
+| [`freight_module`](./freight_module) | Freight / clearing agents — consignments, ports, HS tariff codes, disbursement categories. |
+| [`transport_module`](./transport_module) | Passenger transport (kombi/bus) — fleet, drivers, routes, daily cash-ups, driver payment schemes. |
+| [`l10n_zw`](./l10n_zw) | Zim accounting base — chart of accounts + ZIMRA VAT rates (15.5% / 0% / exempt / 5% WHT). |
+| [`l10n_zw_fdms`](./l10n_zw_fdms) | ZIMRA FDMS fiscalisation — SHA-256 + ECDSA-P256 receipt signing with hash chaining, async submission queue, QR + verification code, fiscal day lifecycle. Depends on `l10n_zw`. |
 
 ## For the code reviewer — recommended reading order
 
-1. **`sage_bridge/README.md`** → `sage_bridge/services/sage_api.py` → `sage_bridge/models/sage_sync_job.py` — the integration client + queue
-2. **`ai_claude_cli/README.md`** → `ai_claude_cli/models/ai_provider_claude.py` → `ai_claude_cli/services/claude_cli.py` — the provider hook + subprocess wrapper
-3. **`mock_sage_server/README.md`** → `mock_sage_server/app.py` — the pseudo-Sage REST endpoints
+1. **`sage_bridge/README.md`** → `sage_bridge/services/sage_api.py` → `sage_bridge/models/sage_sync_job.py` — the integration client + queue + retry.
+2. **`ai_claude_cli/README.md`** → `ai_claude_cli/models/ai_provider_claude.py` → `ai_claude_cli/services/claude_cli.py` — the monkey-patch hook + subprocess wrapper.
+3. **`mock_sage_server/README.md`** → `mock_sage_server/app.py` — the pseudo-Sage REST endpoints.
 
-All three have a "for the reviewer, start here" section at the top of their own README.
+Each module's own README opens with a "for the reviewer, start here" block pointing to the 3–5 key files. About 15 minutes per module to orient.
 
-## Live demo
+## Live demo — what to click
 
-Multi-database Odoo 19 Enterprise at **https://datasmith-demo.zimpreneur.com**:
+`datasmith_sage`
+- Open any customer invoice, post it, then open the **Sage 300 → Sync Queue** menu.
+- Two invoices are already pushed to the mock Sage server with full HTTP logs.
 
-- `datasmith_sage` — Odoo with `sage_bridge` installed, sample customer + invoice pre-loaded
-- `datasmith_ai` — Odoo with `ai_claude_cli` installed and Claude provider pre-selected
-- Login for both: `brandon@datasmith.co.za` / `datasmith2026`
+`datasmith_ai`
+- Click the **"Ask AI"** icon top-right.
+- Ask *"list my customers"* or *"how many invoices do I have?"* — Claude runs a scoped psql query and replies.
 
-Mock-Sage endpoint for `sage_bridge`: **https://mock-sage.datasmith-demo.zimpreneur.com**
-(`curl -u demo:demo123 .../v1.0/-/DEMO01/AR/Customers`)
+`datasmith_fuel` / `datasmith_freight` / `datasmith_transport` / `datasmith_pos`
+- Open the main menu of each and click through the forms.
+- Transport comes pre-loaded with 5 vehicles + 8 drivers.
+- POS has a Demo-mode FDMS virtual device registered.
+
+## Install (standalone)
+
+```bash
+cd /path/to/odoo/custom-addons
+git clone https://github.com/estain-makaudze/datasmith.git
+./odoo-bin -d <db> -i sage_bridge        # or ai_claude_cli, fuel_module, etc.
+```
+
+Each module's `__manifest__.py` declares its own dependencies. The AI module requires Odoo 19 Enterprise (inherits the Enterprise `ai` module); everything else works on Community.
 
 ## License
 
-LGPL-3. See `LICENSE`.
+LGPL-3. See [`LICENSE`](./LICENSE).

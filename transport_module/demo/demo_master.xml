@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Routes -->
+        <record id="route_mbare" model="transport.route">
+            <field name="route_name">Mbare – CBD</field>
+            <field name="origin">Mbare Musika</field>
+            <field name="destination">Harare CBD (Copacabana)</field>
+            <field name="distance_km">7.5</field>
+            <field name="standard_fare_usd">0.50</field>
+            <field name="standard_fare_zwg">13.50</field>
+            <field name="expected_trips_per_day">14</field>
+        </record>
+        <record id="route_chitungwiza" model="transport.route">
+            <field name="route_name">Chitungwiza – CBD</field>
+            <field name="origin">Chitungwiza (Makoni)</field>
+            <field name="destination">Harare CBD (Fourth Street)</field>
+            <field name="distance_km">27.0</field>
+            <field name="standard_fare_usd">1.00</field>
+            <field name="standard_fare_zwg">27.00</field>
+            <field name="expected_trips_per_day">8</field>
+        </record>
+        <record id="route_kuwadzana" model="transport.route">
+            <field name="route_name">Kuwadzana – CBD</field>
+            <field name="origin">Kuwadzana Extension</field>
+            <field name="destination">Harare CBD (Market Square)</field>
+            <field name="distance_km">15.0</field>
+            <field name="standard_fare_usd">0.75</field>
+            <field name="standard_fare_zwg">20.00</field>
+            <field name="expected_trips_per_day">10</field>
+        </record>
+        <record id="route_byo" model="transport.route">
+            <field name="route_name">Harare – Bulawayo</field>
+            <field name="origin">Harare (Mbudzi)</field>
+            <field name="destination">Bulawayo (Renkini)</field>
+            <field name="distance_km">439.0</field>
+            <field name="standard_fare_usd">10.00</field>
+            <field name="standard_fare_zwg">270.00</field>
+            <field name="expected_trips_per_day">1</field>
+        </record>
+
+        <!-- Payment schemes -->
+        <record id="scheme_fixed_weekly" model="transport.payment.scheme">
+            <field name="name">Fixed Weekly Wage</field>
+            <field name="scheme_type">fixed</field>
+            <field name="payment_period">weekly</field>
+            <field name="wage_amount">60.00</field>
+            <field name="deduct_unpaid_leave" eval="True"/>
+        </record>
+        <record id="scheme_commission_weekly" model="transport.payment.scheme">
+            <field name="name">12% Commission (Weekly)</field>
+            <field name="scheme_type">commission</field>
+            <field name="payment_period">weekly</field>
+            <field name="commission_percent">12.0</field>
+        </record>
+        <record id="scheme_hybrid_weekly" model="transport.payment.scheme">
+            <field name="name">Base + 6% Commission (Weekly)</field>
+            <field name="scheme_type">hybrid</field>
+            <field name="payment_period">weekly</field>
+            <field name="wage_amount">35.00</field>
+            <field name="commission_percent">6.0</field>
+            <field name="deduct_unpaid_leave" eval="True"/>
+        </record>
+        <record id="scheme_bus_monthly" model="transport.payment.scheme">
+            <field name="name">Bus Crew Monthly</field>
+            <field name="scheme_type">hybrid</field>
+            <field name="payment_period">monthly</field>
+            <field name="wage_amount">220.00</field>
+            <field name="commission_percent">3.0</field>
+            <field name="deduct_unpaid_leave" eval="True"/>
+        </record>
+
+        <!-- Vehicles -->
+        <record id="vehicle_kombi_1" model="transport.vehicle">
+            <field name="registration">AEZ 4821</field>
+            <field name="vehicle_type">kombi</field>
+            <field name="make">Toyota</field>
+            <field name="model_name">Hiace</field>
+            <field name="year">2016</field>
+            <field name="seat_capacity">15</field>
+            <field name="route_id" ref="route_mbare"/>
+            <field name="current_odometer">248300</field>
+            <field name="purchase_date" eval="(DateTime.today() - relativedelta(years=3, months=2)).strftime('%Y-%m-%d')"/>
+            <field name="purchase_price">8500.00</field>
+            <field name="purchased_from">Willowvale Motor Auctions</field>
+        </record>
+        <record id="vehicle_kombi_2" model="transport.vehicle">
+            <field name="registration">AFB 1173</field>
+            <field name="vehicle_type">kombi</field>
+            <field name="make">Toyota</field>
+            <field name="model_name">Hiace</field>
+            <field name="year">2018</field>
+            <field name="seat_capacity">15</field>
+            <field name="route_id" ref="route_chitungwiza"/>
+            <field name="current_odometer">193450</field>
+            <field name="purchase_date" eval="(DateTime.today() - relativedelta(years=2, months=1)).strftime('%Y-%m-%d')"/>
+            <field name="purchase_price">11200.00</field>
+            <field name="purchased_from">BE FORWARD (import)</field>
+        </record>
+        <record id="vehicle_kombi_3" model="transport.vehicle">
+            <field name="registration">AGK 9034</field>
+            <field name="vehicle_type">kombi</field>
+            <field name="make">Toyota</field>
+            <field name="model_name">Hiace</field>
+            <field name="year">2015</field>
+            <field name="seat_capacity">15</field>
+            <field name="route_id" ref="route_kuwadzana"/>
+            <field name="current_odometer">312800</field>
+            <field name="purchase_date" eval="(DateTime.today() - relativedelta(years=4, months=6)).strftime('%Y-%m-%d')"/>
+            <field name="purchase_price">7000.00</field>
+            <field name="purchased_from">Private sale – Kuwadzana</field>
+        </record>
+        <record id="vehicle_kombi_4" model="transport.vehicle">
+            <field name="registration">AEL 6647</field>
+            <field name="vehicle_type">kombi</field>
+            <field name="make">Nissan</field>
+            <field name="model_name">Caravan</field>
+            <field name="year">2017</field>
+            <field name="seat_capacity">18</field>
+            <field name="route_id" ref="route_mbare"/>
+            <field name="current_odometer">276100</field>
+            <field name="purchase_date" eval="(DateTime.today() - relativedelta(years=2, months=8)).strftime('%Y-%m-%d')"/>
+            <field name="purchase_price">9800.00</field>
+            <field name="purchased_from">BE FORWARD (import)</field>
+        </record>
+        <record id="vehicle_bus_1" model="transport.vehicle">
+            <field name="registration">AFT 2280</field>
+            <field name="vehicle_type">bus</field>
+            <field name="make">Yutong</field>
+            <field name="model_name">ZK6116D</field>
+            <field name="year">2019</field>
+            <field name="seat_capacity">65</field>
+            <field name="route_id" ref="route_byo"/>
+            <field name="current_odometer">421700</field>
+            <field name="purchase_date" eval="(DateTime.today() - relativedelta(years=1, months=9)).strftime('%Y-%m-%d')"/>
+            <field name="purchase_price">78000.00</field>
+            <field name="purchased_from">Yutong dealer, Johannesburg</field>
+        </record>
+
+        <!-- Crew -->
+        <record id="driver_tafadzwa" model="transport.driver">
+            <field name="full_name">Tafadzwa Moyo</field>
+            <field name="driver_role">driver</field>
+            <field name="id_number">63-123456-A-42</field>
+            <field name="license_number">DL-884213</field>
+            <field name="license_class">Class 1</field>
+            <field name="phone">+263 77 123 4567</field>
+            <field name="payment_scheme_id" ref="scheme_fixed_weekly"/>
+            <field name="default_vehicle_id" ref="vehicle_kombi_1"/>
+        </record>
+        <record id="driver_blessing" model="transport.driver">
+            <field name="full_name">Blessing Chikwanha</field>
+            <field name="driver_role">driver</field>
+            <field name="id_number">63-234567-B-42</field>
+            <field name="license_number">DL-771904</field>
+            <field name="license_class">Class 1</field>
+            <field name="phone">+263 77 234 5678</field>
+            <field name="payment_scheme_id" ref="scheme_fixed_weekly"/>
+            <field name="default_vehicle_id" ref="vehicle_kombi_2"/>
+        </record>
+        <record id="driver_simba" model="transport.driver">
+            <field name="full_name">Simbarashe Ncube</field>
+            <field name="driver_role">driver</field>
+            <field name="id_number">08-345678-C-18</field>
+            <field name="license_number">DL-659012</field>
+            <field name="license_class">Class 1</field>
+            <field name="phone">+263 78 345 6789</field>
+            <field name="payment_scheme_id" ref="scheme_commission_weekly"/>
+            <field name="default_vehicle_id" ref="vehicle_kombi_3"/>
+        </record>
+        <record id="driver_tinashe" model="transport.driver">
+            <field name="full_name">Tinashe Marufu</field>
+            <field name="driver_role">driver</field>
+            <field name="id_number">63-456789-D-42</field>
+            <field name="license_number">DL-540388</field>
+            <field name="license_class">Class 1</field>
+            <field name="phone">+263 71 456 7890</field>
+            <field name="payment_scheme_id" ref="scheme_commission_weekly"/>
+            <field name="default_vehicle_id" ref="vehicle_kombi_4"/>
+        </record>
+        <record id="driver_kudzai" model="transport.driver">
+            <field name="full_name">Kudzai Dube</field>
+            <field name="driver_role">driver</field>
+            <field name="id_number">63-567890-E-42</field>
+            <field name="license_number">DL-437765</field>
+            <field name="license_class">Class 2</field>
+            <field name="phone">+263 77 567 8901</field>
+            <field name="payment_scheme_id" ref="scheme_hybrid_weekly"/>
+            <field name="default_vehicle_id" ref="vehicle_kombi_1"/>
+        </record>
+        <record id="driver_farai" model="transport.driver">
+            <field name="full_name">Farai Gumbo</field>
+            <field name="driver_role">driver</field>
+            <field name="id_number">08-678901-F-18</field>
+            <field name="license_number">DL-321142</field>
+            <field name="license_class">Class 1</field>
+            <field name="phone">+263 78 678 9012</field>
+            <field name="payment_scheme_id" ref="scheme_bus_monthly"/>
+            <field name="default_vehicle_id" ref="vehicle_bus_1"/>
+        </record>
+        <record id="conductor_rumbi" model="transport.driver">
+            <field name="full_name">Rumbidzai Mutasa</field>
+            <field name="driver_role">conductor</field>
+            <field name="id_number">63-789012-G-42</field>
+            <field name="phone">+263 71 789 0123</field>
+            <field name="payment_scheme_id" ref="scheme_hybrid_weekly"/>
+        </record>
+        <record id="conductor_takunda" model="transport.driver">
+            <field name="full_name">Takunda Sibanda</field>
+            <field name="driver_role">conductor</field>
+            <field name="id_number">63-890123-H-42</field>
+            <field name="phone">+263 77 890 1234</field>
+            <field name="payment_scheme_id" ref="scheme_fixed_weekly"/>
+        </record>
+
+        <!-- Usual drivers on vehicles (after crew exists) -->
+        <record id="vehicle_kombi_1" model="transport.vehicle">
+            <field name="default_driver_id" ref="driver_tafadzwa"/>
+        </record>
+        <record id="vehicle_kombi_2" model="transport.vehicle">
+            <field name="default_driver_id" ref="driver_blessing"/>
+        </record>
+        <record id="vehicle_kombi_3" model="transport.vehicle">
+            <field name="default_driver_id" ref="driver_simba"/>
+        </record>
+        <record id="vehicle_kombi_4" model="transport.vehicle">
+            <field name="default_driver_id" ref="driver_tinashe"/>
+        </record>
+        <record id="vehicle_bus_1" model="transport.vehicle">
+            <field name="default_driver_id" ref="driver_farai"/>
+        </record>
+
+    </data>
+</odoo>

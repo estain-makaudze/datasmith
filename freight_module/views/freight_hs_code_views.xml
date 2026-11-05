@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="freight_hs_code_view_list" model="ir.ui.view">
+            <field name="name">freight.hs.code.list</field>
+            <field name="model">freight.hs.code</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="code"/>
+                    <field name="description"/>
+                    <field name="unit" optional="show"/>
+                    <field name="duty_rate"/>
+                    <field name="vat_rate"/>
+                    <field name="surtax_rate" optional="show"/>
+                    <field name="cbca_applies" optional="show"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="freight_hs_code_view_form" model="ir.ui.view">
+            <field name="name">freight.hs.code.form</field>
+            <field name="model">freight.hs.code</field>
+            <field name="arch" type="xml">
+                <form string="HS Code">
+                    <sheet>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <div class="oe_title">
+                            <label for="code"/>
+                            <h2><field name="code" placeholder="8703.23.00"/></h2>
+                            <h1><field name="description" placeholder="e.g. Motor vehicles, cylinder 1500–3000cc"/></h1>
+                        </div>
+                        <group>
+                            <group string="Rates">
+                                <field name="duty_rate"/>
+                                <field name="vat_rate"/>
+                                <field name="surtax_rate"/>
+                            </group>
+                            <group string="Flags">
+                                <field name="unit"/>
+                                <field name="cbca_applies"/>
+                                <field name="active" invisible="1"/>
+                            </group>
+                        </group>
+                        <group string="Notes">
+                            <field name="notes" nolabel="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="freight_hs_code_view_search" model="ir.ui.view">
+            <field name="name">freight.hs.code.search</field>
+            <field name="model">freight.hs.code</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="code"/>
+                    <field name="description"/>
+                    <filter name="cbca" string="CBCA Required" domain="[('cbca_applies', '=', True)]"/>
+                    <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_freight_hs_code" model="ir.actions.act_window">
+            <field name="name">HS Codes</field>
+            <field name="res_model">freight.hs.code</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Add your working set of HS tariff codes</p>
+                <p>Only the codes you regularly clear need to live here. Each
+                   consignment picks lines from this set and inherits the duty, VAT
+                   and surtax rates.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

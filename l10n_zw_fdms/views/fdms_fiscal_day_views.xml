@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fiscal_day_view_list" model="ir.ui.view">
+        <field name="name">l10n_zw.fiscal.day.list</field>
+        <field name="model">l10n_zw.fiscal.day</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="device_id"/>
+                <field name="fiscal_day_no"/>
+                <field name="opened_datetime"/>
+                <field name="closed_datetime"/>
+                <field name="document_count"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'closed'"
+                       decoration-info="state == 'open'"
+                       decoration-warning="state == 'close_initiated'"
+                       decoration-danger="state == 'close_failed'"/>
+                <field name="server_synced"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="fiscal_day_view_form" model="ir.ui.view">
+        <field name="name">l10n_zw.fiscal.day.form</field>
+        <field name="model">l10n_zw.fiscal.day</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="device_id"/>
+                            <field name="fiscal_day_no"/>
+                            <field name="opened_datetime"/>
+                            <field name="closed_datetime"/>
+                        </group>
+                        <group>
+                            <field name="receipt_counter"/>
+                            <field name="server_synced"/>
+                            <field name="close_operation_id"/>
+                        </group>
+                    </group>
+                    <field name="close_error" invisible="not close_error"/>
+                    <notebook>
+                        <page string="Documents">
+                            <field name="document_ids" readonly="1"/>
+                        </page>
+                        <page string="Counters (as closed)">
+                            <field name="counters_json" widget="json" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="fiscal_day_action" model="ir.actions.act_window">
+        <field name="name">Fiscal Days</field>
+        <field name="res_model">l10n_zw.fiscal.day</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

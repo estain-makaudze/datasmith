@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="res_config_settings_view_form_fuel" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.fuel.module</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <app data-string="Fuel Stations" string="Fuel Stations" name="fuel_module"
+                         groups="fuel_module.group_fuel_manager">
+                        <block title="Defaults" name="fuel_defaults_block">
+                            <setting string="Wet Stock Tolerance"
+                                     help="Variance allowed as a percentage of throughput before a tank is flagged. New sites start with this value.">
+                                <field name="fuel_default_tolerance"/>
+                            </setting>
+                            <setting string="Forecourt Currency"
+                                     help="Currency proposed on new shifts and pump prices.">
+                                <field name="fuel_default_currency_id"/>
+                            </setting>
+                        </block>
+                        <block title="Posting a Shift" name="fuel_posting_block">
+                            <setting string="Forecourt Journal"
+                                     help="Journal the one entry per shift is posted to.">
+                                <field name="fuel_journal_id"/>
+                            </setting>
+                            <setting string="Fuel Sales Account"
+                                     help="Income credited with sales, net of VAT. Leave empty to use each grade's own income account.">
+                                <field name="fuel_sales_account_id"/>
+                            </setting>
+                            <setting string="Output VAT"
+                                     help="The VAT charged on fuel, so it reaches the tax report.">
+                                <field name="fuel_tax_id"/>
+                            </setting>
+                            <setting string="Pump Prices Include VAT"
+                                     help="On in Zimbabwe: the gazetted board price is VAT inclusive.">
+                                <field name="fuel_price_tax_included"/>
+                            </setting>
+                            <setting string="Attendant Shortage Account"
+                                     help="Receivable carrying what each attendant is short.">
+                                <field name="fuel_shortage_account_id"/>
+                            </setting>
+                        </block>
+                        <block title="Fuel Stock" name="fuel_stock_block">
+                            <setting string="Fuel Stock Account"
+                                     help="Asset account holding fuel in the ground at average cost.">
+                                <field name="fuel_stock_account_id"/>
+                            </setting>
+                            <setting string="Cost of Sales Account">
+                                <field name="fuel_cogs_account_id"/>
+                            </setting>
+                            <setting string="Wet Stock Loss Account"
+                                     help="Where an unexplained variance lands. This is the number the owner reads.">
+                                <field name="fuel_stock_loss_account_id"/>
+                            </setting>
+                        </block>
+                    </app>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_fuel_config_settings" model="ir.actions.act_window">
+            <field name="name">Fuel Stations Settings</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="context">{'module': 'fuel_module'}</field>
+        </record>
+
+    </data>
+</odoo>

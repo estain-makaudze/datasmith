@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_l10n_zw_fdms_root" name="ZIMRA Fiscalisation"
+              parent="account.menu_finance_configuration" sequence="90"/>
+    <menuitem id="menu_l10n_zw_fdms_devices" name="Fiscal Devices"
+              parent="menu_l10n_zw_fdms_root" action="fdms_device_action" sequence="10"/>
+    <menuitem id="menu_l10n_zw_fdms_days" name="Fiscal Days"
+              parent="menu_l10n_zw_fdms_root" action="fiscal_day_action" sequence="20"/>
+    <menuitem id="menu_l10n_zw_fdms_documents" name="Fiscal Documents"
+              parent="menu_l10n_zw_fdms_root" action="fdms_document_action" sequence="30"/>
+</odoo>

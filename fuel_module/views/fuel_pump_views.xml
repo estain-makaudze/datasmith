@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_fuel_pump_list" model="ir.ui.view">
+            <field name="name">fuel.pump.list</field>
+            <field name="model">fuel.pump</field>
+            <field name="arch" type="xml">
+                <list string="Pumps">
+                    <field name="sequence" widget="handle"/>
+                    <field name="site_id"/>
+                    <field name="name"/>
+                    <field name="nozzle_count" string="Nozzles"/>
+                    <field name="note"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_fuel_pump_form" model="ir.ui.view">
+            <field name="name">fuel.pump.form</field>
+            <field name="model">fuel.pump</field>
+            <field name="arch" type="xml">
+                <form string="Pump">
+                    <sheet>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <field name="active" invisible="1"/>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1><field name="name" placeholder="e.g. Pump 1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="site_id"/>
+                            </group>
+                            <group>
+                                <field name="note" placeholder="Make, model, calibration notes"/>
+                            </group>
+                        </group>
+                        <separator string="Nozzles"/>
+                        <p class="text-muted">
+                            One row per nozzle, each pointing at the tank it draws from.
+                            The totaliser is the lifetime litre counter on the face of the pump.
+                        </p>
+                        <field name="nozzle_ids" context="{'default_pump_id': id}">
+                            <list editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="name"/>
+                                <field name="tank_id"/>
+                                <field name="product_id" readonly="1"/>
+                                <field name="current_totaliser"/>
+                            </list>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_fuel_pump" model="ir.actions.act_window">
+            <field name="name">Pumps</field>
+            <field name="res_model">fuel.pump</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Add a pump</p>
+                <p>A pump carries one or more nozzles. Each nozzle draws from one tank.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

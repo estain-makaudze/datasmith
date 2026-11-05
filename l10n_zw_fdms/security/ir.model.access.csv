@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_fdms_device_invoice,fdms.device.invoice,model_l10n_zw_fdms_device,account.group_account_invoice,1,0,0,0
+access_fdms_device_manager,fdms.device.manager,model_l10n_zw_fdms_device,account.group_account_manager,1,1,1,1
+access_fiscal_day_invoice,fiscal.day.invoice,model_l10n_zw_fiscal_day,account.group_account_invoice,1,1,1,0
+access_fiscal_day_manager,fiscal.day.manager,model_l10n_zw_fiscal_day,account.group_account_manager,1,1,1,0
+access_fdms_document_invoice,fdms.document.invoice,model_l10n_zw_fdms_document,account.group_account_invoice,1,1,1,0
+access_fdms_document_manager,fdms.document.manager,model_l10n_zw_fdms_document,account.group_account_manager,1,1,1,0
+access_fdms_register_wizard,fdms.register.wizard,model_l10n_zw_fdms_register_wizard,account.group_account_manager,1,1,1,1
+access_fdms_close_day_wizard,fdms.close.day.wizard,model_l10n_zw_fdms_close_day_wizard,account.group_account_manager,1,1,1,1

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_fuel_tank_list" model="ir.ui.view">
+            <field name="name">fuel.tank.list</field>
+            <field name="model">fuel.tank</field>
+            <field name="arch" type="xml">
+                <list string="Tanks">
+                    <field name="sequence" widget="handle"/>
+                    <field name="site_id"/>
+                    <field name="name"/>
+                    <field name="product_id" context="{'default_is_fuel_grade': True, 'default_type': 'consu'}" options="{'no_quick_create': True}"/>
+                    <field name="capacity_litres" sum="Capacity"/>
+                    <field name="dead_stock_litres"/>
+                    <field name="safe_fill_percent"/>
+                    <field name="chart_line_count" string="Chart rows"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_fuel_tank_form" model="ir.ui.view">
+            <field name="name">fuel.tank.form</field>
+            <field name="model">fuel.tank</field>
+            <field name="arch" type="xml">
+                <form string="Tank">
+                    <header>
+                        <button name="action_test_dip" type="object" string="Test a Dip"
+                                class="btn-primary" invisible="chart_line_count == 0"/>
+                    </header>
+                    <sheet>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                                invisible="active"/>
+                        <field name="active" invisible="1"/>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1><field name="name" placeholder="e.g. Tank 1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="site_id"/>
+                                <field name="product_id" context="{'default_is_fuel_grade': True, 'default_type': 'consu'}" options="{'no_quick_create': True}"/>
+                                <field name="chart_line_count" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="capacity_litres"/>
+                                <field name="dead_stock_litres"/>
+                                <field name="safe_fill_percent"/>
+                                <field name="average_cost"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Strapping Chart" name="chart">
+                                <p class="text-muted">
+                                    The conversion from a dip in millimetres to litres, for this
+                                    tank only. Copy it from the calibration certificate. Rows
+                                    may be as coarse as every 10 mm; readings in between are
+                                    interpolated.
+                                </p>
+                                <field name="chart_line_ids">
+                                    <list editable="bottom" default_order="dip_mm">
+                                        <field name="dip_mm"/>
+                                        <field name="litres"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Nozzles Fed" name="nozzles">
+                                <field name="nozzle_ids" readonly="1">
+                                    <list>
+                                        <field name="pump_id"/>
+                                        <field name="name"/>
+                                        <field name="current_totaliser"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_fuel_tank_search" model="ir.ui.view">
+            <field name="name">fuel.tank.search</field>
+            <field name="model">fuel.tank</field>
+            <field name="arch" type="xml">
+                <search string="Tanks">
+                    <field name="name"/>
+                    <field name="site_id"/>
+                    <field name="product_id" context="{'default_is_fuel_grade': True, 'default_type': 'consu'}" options="{'no_quick_create': True}"/>
+                    <filter name="no_chart" string="No strapping chart"
+                            domain="[('chart_line_ids','=',False)]"/>
+                    <filter name="inactive" string="Archived" domain="[('active','=',False)]"/>
+                    <group>
+                        <filter name="group_site" string="Site" context="{'group_by': 'site_id'}"/>
+                        <filter name="group_product" string="Product" context="{'group_by': 'product_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_fuel_tank" model="ir.actions.act_window">
+            <field name="name">Tanks</field>
+            <field name="res_model">fuel.tank</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Add a tank</p>
+                <p>Each tank holds one grade and carries its own strapping chart.
+                   Without that chart a dip cannot be turned into litres.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

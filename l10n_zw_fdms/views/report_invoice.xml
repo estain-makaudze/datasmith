@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_invoice_document_l10n_zw_fdms"
+              inherit_id="account.report_invoice_document">
+        <xpath expr="//div[@id='qrcode']" position="after">
+            <div t-if="o.l10n_zw_is_fiscalised" class="mt-3 pt-2 border-top"
+                 name="l10n_zw_fdms_fiscal_block">
+                <div class="row">
+                    <div class="col-8">
+                        <strong>ZIMRA Fiscal Tax Invoice</strong>
+                        <table class="table table-sm table-borderless mb-0"
+                               style="width: auto; font-size: 0.9em;">
+                            <tr>
+                                <td class="ps-0 pe-3">Device ID:</td>
+                                <td><span t-esc="'%010d' % o.l10n_zw_fdms_document_ids.sorted('id')[-1:].device_id.device_id"/></td>
+                            </tr>
+                            <tr>
+                                <td class="ps-0 pe-3">Device Serial:</td>
+                                <td><span t-field="o.l10n_zw_device_serial"/></td>
+                            </tr>
+                            <tr>
+                                <td class="ps-0 pe-3">Fiscal Day:</td>
+                                <td><span t-field="o.l10n_zw_fiscal_day_no"/></td>
+                            </tr>
+                            <tr>
+                                <td class="ps-0 pe-3">Receipt Global No:</td>
+                                <td><span t-field="o.l10n_zw_receipt_global_no"/></td>
+                            </tr>
+                            <tr>
+                                <td class="ps-0 pe-3">Fiscal Date:</td>
+                                <td><span t-field="o.l10n_zw_receipt_date"/></td>
+                            </tr>
+                            <tr>
+                                <td class="ps-0 pe-3">Verification Code:</td>
+                                <td><strong t-field="o.l10n_zw_verification_code"/></td>
+                            </tr>
+                        </table>
+                        <div style="font-size: 0.8em;" class="text-muted">
+                            Verify this receipt at
+                            <span t-esc="(o.l10n_zw_fdms_document_ids.sorted('id')[-1:].device_id.qr_url or '') + 'Receipt/Find'"/>
+                        </div>
+                    </div>
+                    <div class="col-4 text-end">
+                        <img t-if="o.l10n_zw_qr_image"
+                             t-att-src="image_data_uri(o.l10n_zw_qr_image)"
+                             style="width: 35mm; height: 35mm;" alt="ZIMRA QR"/>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

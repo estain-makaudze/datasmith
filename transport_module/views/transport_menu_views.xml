@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <menuitem id="menu_transport_root"
+                  name="Transport"
+                  web_icon="transport_module,static/description/icon.png"
+                  groups="group_transport_user"
+                  sequence="35"/>
+
+        <!-- Operations -->
+        <menuitem id="menu_transport_operations"
+                  name="Operations"
+                  parent="menu_transport_root"
+                  sequence="10"/>
+        <menuitem id="menu_transport_cashup"
+                  name="Cash-Up Sheets"
+                  parent="menu_transport_operations"
+                  action="action_transport_cashup"
+                  sequence="10"/>
+        <menuitem id="menu_transport_payment_run_wizard"
+                  name="Run Driver Payments"
+                  parent="menu_transport_operations"
+                  action="action_transport_payment_run_wizard"
+                  groups="group_transport_manager"
+                  sequence="20"/>
+
+        <!-- Fleet -->
+        <menuitem id="menu_transport_fleet"
+                  name="Fleet"
+                  parent="menu_transport_root"
+                  sequence="20"/>
+        <menuitem id="menu_transport_vehicles"
+                  name="Vehicles"
+                  parent="menu_transport_fleet"
+                  action="action_transport_vehicle"
+                  sequence="10"/>
+        <menuitem id="menu_transport_vehicle_services"
+                  name="Workshop &amp; Services"
+                  parent="menu_transport_fleet"
+                  action="action_transport_vehicle_service"
+                  sequence="20"/>
+
+        <!-- Crew -->
+        <menuitem id="menu_transport_crew"
+                  name="Crew"
+                  parent="menu_transport_root"
+                  sequence="30"/>
+        <menuitem id="menu_transport_driver_list"
+                  name="Drivers &amp; Conductors"
+                  parent="menu_transport_crew"
+                  action="action_transport_driver"
+                  sequence="10"/>
+        <menuitem id="menu_transport_payment_runs"
+                  name="Payment Runs"
+                  parent="menu_transport_crew"
+                  action="action_transport_payment_run"
+                  sequence="20"/>
+        <menuitem id="menu_transport_leaves"
+                  name="Leave Requests"
+                  parent="menu_transport_crew"
+                  action="action_transport_leave"
+                  sequence="30"/>
+        <menuitem id="menu_transport_leave_allocations"
+                  name="Leave Allocations"
+                  parent="menu_transport_crew"
+                  action="action_transport_leave_allocation"
+                  groups="group_transport_manager"
+                  sequence="40"/>
+
+        <!-- Reporting -->
+        <menuitem id="menu_transport_reporting"
+                  name="Reporting"
+                  parent="menu_transport_root"
+                  sequence="40"/>
+        <menuitem id="menu_transport_takings_analysis"
+                  name="Takings Analysis"
+                  parent="menu_transport_reporting"
+                  action="action_transport_cashup_analysis"
+                  sequence="10"/>
+
+        <!-- Configuration -->
+        <menuitem id="menu_transport_configuration"
+                  name="Configuration"
+                  parent="menu_transport_root"
+                  groups="group_transport_manager"
+                  sequence="90"/>
+        <menuitem id="menu_transport_routes"
+                  name="Routes"
+                  parent="menu_transport_configuration"
+                  action="action_transport_route"
+                  sequence="10"/>
+        <menuitem id="menu_transport_expense_types"
+                  name="Expense Types"
+                  parent="menu_transport_configuration"
+                  action="action_transport_expense_type"
+                  sequence="20"/>
+        <menuitem id="menu_transport_payment_schemes"
+                  name="Payment Schemes"
+                  parent="menu_transport_configuration"
+                  action="action_transport_payment_scheme"
+                  sequence="30"/>
+        <menuitem id="menu_transport_leave_types"
+                  name="Leave Types"
+                  parent="menu_transport_configuration"
+                  action="action_transport_leave_type"
+                  sequence="40"/>
+        <menuitem id="menu_transport_settings"
+                  name="Settings"
+                  parent="menu_transport_configuration"
+                  action="action_transport_config_settings"
+                  sequence="50"/>
+
+    </data>
+</odoo>

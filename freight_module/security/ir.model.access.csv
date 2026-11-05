@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_freight_port_user,freight.port user,model_freight_port,group_freight_user,1,0,0,0
+access_freight_port_manager,freight.port manager,model_freight_port,group_freight_manager,1,1,1,1
+access_freight_hs_code_user,freight.hs.code user,model_freight_hs_code,group_freight_user,1,0,0,0
+access_freight_hs_code_manager,freight.hs.code manager,model_freight_hs_code,group_freight_manager,1,1,1,1
+access_freight_disbursement_category_user,freight.disbursement.category user,model_freight_disbursement_category,group_freight_user,1,0,0,0
+access_freight_disbursement_category_manager,freight.disbursement.category manager,model_freight_disbursement_category,group_freight_manager,1,1,1,1
+access_freight_consignment_user,freight.consignment user,model_freight_consignment,group_freight_user,1,1,1,0
+access_freight_consignment_manager,freight.consignment manager,model_freight_consignment,group_freight_manager,1,1,1,1
+access_freight_consignment_document_user,freight.consignment.document user,model_freight_consignment_document,group_freight_user,1,1,1,1
+access_freight_consignment_document_manager,freight.consignment.document manager,model_freight_consignment_document,group_freight_manager,1,1,1,1
+access_freight_hs_line_user,freight.hs.line user,model_freight_hs_line,group_freight_user,1,1,1,1
+access_freight_hs_line_manager,freight.hs.line manager,model_freight_hs_line,group_freight_manager,1,1,1,1

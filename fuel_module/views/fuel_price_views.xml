@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_fuel_price_list" model="ir.ui.view">
+            <field name="name">fuel.price.list</field>
+            <field name="model">fuel.price</field>
+            <field name="arch" type="xml">
+                <list string="Pump Prices" editable="top"
+                      decoration-muted="price_status == 'superseded'"
+                      decoration-info="price_status == 'scheduled'"
+                      decoration-bf="price_status == 'current'">
+                    <field name="valid_from"/>
+                    <field name="product_id" context="{'default_is_fuel_grade': True, 'default_type': 'consu'}" options="{'no_quick_create': True}"/>
+                    <field name="site_id" placeholder="All sites"/>
+                    <field name="price"/>
+                    <field name="currency_id" groups="base.group_multi_currency"/>
+                    <field name="price_status" string="Status"/>
+                    <field name="note" optional="show"/>
+                    <field name="company_id" column_invisible="True"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_fuel_price_form" model="ir.ui.view">
+            <field name="name">fuel.price.form</field>
+            <field name="model">fuel.price</field>
+            <field name="arch" type="xml">
+                <form string="Pump Price">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="price"/>
+                            <h1>
+                                <field name="price" widget="monetary" class="oe_inline"/>
+                                <span class="oe_inline"> per litre</span>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="product_id" context="{'default_is_fuel_grade': True, 'default_type': 'consu'}" options="{'no_quick_create': True}"/>
+                                <field name="site_id" placeholder="All sites"/>
+                                <field name="currency_id" groups="base.group_multi_currency"/>
+                            </group>
+                            <group>
+                                <field name="valid_from"/>
+                                <field name="price_status"/>
+                                <field name="note" placeholder="ZERA circular, or why it moved"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <div class="text-muted">
+                            Prices are per litre and include VAT, as the board on the street
+                            shows them. A price with a site set overrides the all-sites price
+                            for that site. Sales before the valid-from moment keep the
+                            previous price.
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_fuel_price_search" model="ir.ui.view">
+            <field name="name">fuel.price.search</field>
+            <field name="model">fuel.price</field>
+            <field name="arch" type="xml">
+                <search string="Pump Prices">
+                    <field name="product_id" context="{'default_is_fuel_grade': True, 'default_type': 'consu'}" options="{'no_quick_create': True}"/>
+                    <field name="site_id"/>
+                    <filter name="all_sites" string="All-sites prices"
+                            domain="[('site_id','=',False)]"/>
+                    <filter name="future" string="Scheduled"
+                            domain="[('valid_from','&gt;',context_today().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                    <separator/>
+                    <filter name="this_month" string="Changed this month"
+                            domain="[('valid_from','&gt;=',(context_today()+relativedelta(day=1)).strftime('%Y-%m-%d'))]"/>
+                    <group>
+                        <filter name="group_product" string="Product" context="{'group_by': 'product_id'}"/>
+                        <filter name="group_site" string="Site" context="{'group_by': 'site_id'}"/>
+                        <filter name="group_date" string="Valid From" context="{'group_by': 'valid_from:day'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_fuel_price" model="ir.actions.act_window">
+            <field name="name">Pump Prices</field>
+            <field name="res_model">fuel.price</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'search_default_group_product': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Record the board price</p>
+                <p>Every price change is a new row with the moment it took effect.
+                   Nothing is overwritten, so a shift that straddles a change can still
+                   be priced correctly on both sides of it.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

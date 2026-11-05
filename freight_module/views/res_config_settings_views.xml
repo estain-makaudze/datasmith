@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="res_config_settings_view_form_freight" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.freight.module</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <app data-string="Freight" string="Freight" name="freight_module">
+                        <block title="Disbursements Posting" name="freight_disbursement_block">
+                            <setting string="Disbursement Journal"
+                                     help="Cash or bank journal used to record payments the agent makes on behalf of clients.">
+                                <field name="freight_disbursement_journal_id"/>
+                            </setting>
+                            <setting string="Client Disbursements Receivable"
+                                     help="Receivable account debited on disbursement, cleared on invoice.">
+                                <field name="freight_client_disbursements_account_id"/>
+                            </setting>
+                        </block>
+                        <block title="Service Invoicing" name="freight_invoice_block">
+                            <setting string="Clearing Revenue Journal"
+                                     help="Sales journal fiscalised invoices post to.">
+                                <field name="freight_clearing_revenue_journal_id"/>
+                            </setting>
+                            <setting string="Clearing Revenue Account"
+                                     help="Income account credited with the clearing agent fee.">
+                                <field name="freight_clearing_revenue_account_id"/>
+                            </setting>
+                        </block>
+                        <block title="Client Deposits" name="freight_deposit_block">
+                            <setting string="Deposits Journal"
+                                     help="Journal advance deposits are received into.">
+                                <field name="freight_client_deposits_journal_id"/>
+                            </setting>
+                            <setting string="Client Deposits Liability"
+                                     help="Liability account credited when a client pays an advance deposit.">
+                                <field name="freight_client_deposits_account_id"/>
+                            </setting>
+                        </block>
+                        <block title="Transport Costs &amp; FX" name="freight_misc_block">
+                            <setting string="Transport Cost Account"
+                                     help="Cost of sales account debited when a trip is approved for payment.">
+                                <field name="freight_transport_cost_account_id"/>
+                            </setting>
+                            <setting string="FX Gain / Loss Account"
+                                     help="Used to post FX gain or loss on reconciliation.">
+                                <field name="freight_fx_gain_account_id"/>
+                            </setting>
+                        </block>
+                        <block title="Defaults" name="freight_defaults_block">
+                            <setting string="Default Operating Currency"
+                                     help="Currency proposed on new consignments and quotes (typically USD).">
+                                <field name="freight_default_currency_id"/>
+                            </setting>
+                            <setting string="Default Free Days at Port"
+                                     help="Fallback free-days allowance when a port record does not specify.">
+                                <field name="freight_default_free_days"/>
+                            </setting>
+                        </block>
+                    </app>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_freight_config_settings" model="ir.actions.act_window">
+            <field name="name">Freight Settings</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="context">{'module': 'freight_module'}</field>
+        </record>
+
+    </data>
+</odoo>

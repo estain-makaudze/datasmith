@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="cat_duty" model="freight.disbursement.category">
+            <field name="name">Customs Duty</field>
+            <field name="code">DUTY</field>
+            <field name="kind">duty</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="cat_vat" model="freight.disbursement.category">
+            <field name="name">Import VAT</field>
+            <field name="code">VAT</field>
+            <field name="kind">vat</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="cat_surtax" model="freight.disbursement.category">
+            <field name="name">Surtax</field>
+            <field name="code">SURTAX</field>
+            <field name="kind">surtax</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="cat_cbca" model="freight.disbursement.category">
+            <field name="name">CBCA / Inspection</field>
+            <field name="code">CBCA</field>
+            <field name="kind">inspection</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="cat_zimdef" model="freight.disbursement.category">
+            <field name="name">ZIMDEF / SDL</field>
+            <field name="code">ZIMDEF</field>
+            <field name="kind">inspection</field>
+            <field name="sequence">45</field>
+        </record>
+        <record id="cat_port" model="freight.disbursement.category">
+            <field name="name">Port Handling</field>
+            <field name="code">PORT</field>
+            <field name="kind">port</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="cat_storage" model="freight.disbursement.category">
+            <field name="name">Storage</field>
+            <field name="code">STOR</field>
+            <field name="kind">storage</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="cat_demurrage" model="freight.disbursement.category">
+            <field name="name">Demurrage</field>
+            <field name="code">DEM</field>
+            <field name="kind">demurrage</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="cat_transport" model="freight.disbursement.category">
+            <field name="name">Transport</field>
+            <field name="code">TRANS</field>
+            <field name="kind">transport</field>
+            <field name="sequence">80</field>
+        </record>
+        <record id="cat_escort" model="freight.disbursement.category">
+            <field name="name">Escort / Convoy</field>
+            <field name="code">ESC</field>
+            <field name="kind">escort</field>
+            <field name="sequence">90</field>
+        </record>
+        <record id="cat_scanning" model="freight.disbursement.category">
+            <field name="name">Scanning</field>
+            <field name="code">SCAN</field>
+            <field name="kind">scanning</field>
+            <field name="sequence">100</field>
+        </record>
+        <record id="cat_warehouse" model="freight.disbursement.category">
+            <field name="name">Warehouse</field>
+            <field name="code">WH</field>
+            <field name="kind">warehouse</field>
+            <field name="sequence">110</field>
+        </record>
+        <record id="cat_other" model="freight.disbursement.category">
+            <field name="name">Other</field>
+            <field name="code">OTHER</field>
+            <field name="kind">other</field>
+            <field name="sequence">900</field>
+            <field name="billable_default" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

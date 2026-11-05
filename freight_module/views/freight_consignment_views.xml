@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ============================ List view ============================ -->
+        <record id="freight_consignment_view_list" model="ir.ui.view">
+            <field name="name">freight.consignment.list</field>
+            <field name="model">freight.consignment</field>
+            <field name="arch" type="xml">
+                <list decoration-info="state == 'draft'"
+                      decoration-primary="state == 'in_clearance'"
+                      decoration-warning="state in ('released','in_transit')"
+                      decoration-success="state == 'delivered'"
+                      decoration-muted="state in ('closed','cancelled')">
+                    <field name="name"/>
+                    <field name="date_opened"/>
+                    <field name="client_id"/>
+                    <field name="client_ref" optional="show"/>
+                    <field name="mode"/>
+                    <field name="port_entry_id" optional="show"/>
+                    <field name="truck_registration" optional="hide"/>
+                    <field name="container_no" optional="hide"/>
+                    <field name="invoice_value" sum="Total" optional="show"/>
+                    <field name="estimated_duty" sum="Total" optional="show"/>
+                    <field name="invoice_currency_id" optional="hide"/>
+                    <field name="eta" optional="show"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-primary="state == 'in_clearance'"
+                           decoration-warning="state in ('released','in_transit')"
+                           decoration-success="state in ('delivered','invoiced','closed')"
+                           decoration-danger="state == 'cancelled'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- ============================ Form view ============================ -->
+        <record id="freight_consignment_view_form" model="ir.ui.view">
+            <field name="name">freight.consignment.form</field>
+            <field name="model">freight.consignment</field>
+            <field name="arch" type="xml">
+                <form string="Consignment">
+                    <header>
+                        <button name="action_set_in_clearance" type="object"
+                                string="Start Clearance" class="oe_highlight"
+                                invisible="state not in ('draft','quoted')"/>
+                        <button name="action_mark_released" type="object"
+                                string="Mark Released" class="oe_highlight"
+                                invisible="state != 'in_clearance'"/>
+                        <button name="action_mark_in_transit" type="object"
+                                string="In Transit"
+                                invisible="state != 'released'"/>
+                        <button name="action_mark_delivered" type="object"
+                                string="Mark Delivered" class="oe_highlight"
+                                invisible="state != 'in_transit'"/>
+                        <button name="action_close" type="object"
+                                string="Close"
+                                invisible="state not in ('delivered','invoiced')"/>
+                        <button name="action_cancel" type="object"
+                                string="Cancel"
+                                invisible="state in ('closed','cancelled')"/>
+                        <button name="action_reset_to_draft" type="object"
+                                string="Reset to Draft"
+                                invisible="state not in ('cancelled','quoted')"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,in_clearance,released,in_transit,delivered,closed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_hs_lines" type="object"
+                                    class="oe_stat_button" icon="fa-list-ol">
+                                <field name="hs_line_count" widget="statinfo"
+                                       string="HS Lines"/>
+                            </button>
+                            <button name="action_view_documents" type="object"
+                                    class="oe_stat_button" icon="fa-files-o">
+                                <field name="document_count" widget="statinfo"
+                                       string="Documents"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <label for="name" string="CRN"/>
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="client_id"
+                                       options="{'no_create_edit': True}"/>
+                                <field name="client_ref"/>
+                                <field name="user_id"/>
+                                <field name="date_opened"/>
+                                <field name="eta"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                            <group>
+                                <field name="mode"/>
+                                <field name="direction"/>
+                                <field name="incoterm"/>
+                                <field name="origin"/>
+                                <field name="destination"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Ports">
+                                <field name="port_entry_id"/>
+                                <field name="port_exit_id"
+                                       invisible="direction == 'import'"/>
+                            </group>
+                            <group string="Carriage">
+                                <field name="truck_registration"/>
+                                <field name="driver_name"/>
+                                <field name="container_no"/>
+                                <field name="seal_no"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Commercial">
+                                <label for="invoice_value"/>
+                                <div class="o_row">
+                                    <field name="invoice_value"/>
+                                    <field name="invoice_currency_id"
+                                           options="{'no_create': True}"/>
+                                </div>
+                            </group>
+                            <group string="Bill of Entry (ASYCUDA)">
+                                <field name="boe_entry_no"/>
+                                <field name="boe_entry_date"/>
+                                <field name="release_date"/>
+                                <field name="delivered_date"
+                                       invisible="not delivered_date"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="HS Lines" name="hs_lines">
+                                <field name="hs_line_ids">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="hs_code_id"/>
+                                        <field name="description"/>
+                                        <field name="qty"/>
+                                        <field name="unit"/>
+                                        <field name="value"/>
+                                        <field name="duty_rate"/>
+                                        <field name="vat_rate"/>
+                                        <field name="surtax_rate"/>
+                                        <field name="duty_amount" sum="Duty"/>
+                                        <field name="vat_amount" sum="VAT"/>
+                                        <field name="surtax_amount" sum="Surtax"/>
+                                        <field name="total_due" sum="Total"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                    </list>
+                                </field>
+                                <group class="oe_subtotal_footer">
+                                    <field name="estimated_customs_duty"/>
+                                    <field name="estimated_vat"/>
+                                    <field name="estimated_surtax"/>
+                                    <field name="estimated_duty"
+                                           class="oe_subtotal_footer_separator"/>
+                                </group>
+                            </page>
+                            <page string="Documents" name="documents">
+                                <field name="document_ids">
+                                    <list editable="bottom">
+                                        <field name="type"/>
+                                        <field name="reference"/>
+                                        <field name="name"/>
+                                        <field name="attachment"
+                                               widget="binary"
+                                               filename="attachment_filename"/>
+                                        <field name="attachment_filename" column_invisible="1"/>
+                                        <field name="uploaded_by" optional="show"/>
+                                        <field name="uploaded_at" optional="show"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes" name="notes">
+                                <field name="notes" nolabel="1"
+                                       placeholder="Internal clerk notes — not shown to the client."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- =========================== Kanban view =========================== -->
+        <record id="freight_consignment_view_kanban" model="ir.ui.view">
+            <field name="name">freight.consignment.kanban</field>
+            <field name="model">freight.consignment</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" class="o_kanban_small_column">
+                    <field name="name"/>
+                    <field name="client_id"/>
+                    <field name="state"/>
+                    <field name="mode"/>
+                    <field name="port_entry_id"/>
+                    <field name="eta"/>
+                    <field name="estimated_duty"/>
+                    <field name="invoice_currency_id"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="oe_kanban_global_click">
+                                <div class="d-flex justify-content-between">
+                                    <strong><field name="name"/></strong>
+                                    <span class="badge text-bg-secondary">
+                                        <field name="mode"/>
+                                    </span>
+                                </div>
+                                <div class="text-muted">
+                                    <field name="client_id"/>
+                                </div>
+                                <div t-if="record.port_entry_id.raw_value" class="small">
+                                    <i class="fa fa-map-marker" title="Port of Entry" role="img" aria-label="Port of Entry"/>
+                                    <field name="port_entry_id"/>
+                                </div>
+                                <div t-if="record.eta.raw_value" class="small">
+                                    <i class="fa fa-clock-o" title="ETA" role="img" aria-label="ETA"/>
+                                    ETA <field name="eta"/>
+                                </div>
+                                <div t-if="record.estimated_duty.raw_value" class="small text-end">
+                                    Duty <field name="estimated_duty" widget="monetary"/>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- =========================== Search view =========================== -->
+        <record id="freight_consignment_view_search" model="ir.ui.view">
+            <field name="name">freight.consignment.search</field>
+            <field name="model">freight.consignment</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="client_id"/>
+                    <field name="client_ref"/>
+                    <field name="truck_registration"/>
+                    <field name="container_no"/>
+                    <field name="boe_entry_no"/>
+                    <filter string="My Jobs" name="my_jobs"
+                            domain="[('user_id', '=', uid)]"/>
+                    <separator/>
+                    <filter string="Open" name="open"
+                            domain="[('state', 'not in', ('closed','cancelled'))]"/>
+                    <filter string="Draft" name="draft"
+                            domain="[('state', '=', 'draft')]"/>
+                    <filter string="In Clearance" name="in_clearance"
+                            domain="[('state', '=', 'in_clearance')]"/>
+                    <filter string="Released" name="released"
+                            domain="[('state', '=', 'released')]"/>
+                    <filter string="In Transit" name="in_transit"
+                            domain="[('state', '=', 'in_transit')]"/>
+                    <filter string="Delivered" name="delivered"
+                            domain="[('state', '=', 'delivered')]"/>
+                    <filter string="Closed" name="closed"
+                            domain="[('state', '=', 'closed')]"/>
+                    <separator/>
+                    <filter string="Road" name="mode_road" domain="[('mode', '=', 'road')]"/>
+                    <filter string="Sea" name="mode_sea" domain="[('mode', '=', 'sea')]"/>
+                    <filter string="Air" name="mode_air" domain="[('mode', '=', 'air')]"/>
+                    <group>
+                        <filter string="Status" name="group_state"
+                                context="{'group_by': 'state'}"/>
+                        <filter string="Client" name="group_client"
+                                context="{'group_by': 'client_id'}"/>
+                        <filter string="Port of Entry" name="group_port"
+                                context="{'group_by': 'port_entry_id'}"/>
+                        <filter string="Clerk" name="group_user"
+                                context="{'group_by': 'user_id'}"/>
+                        <filter string="Mode" name="group_mode"
+                                context="{'group_by': 'mode'}"/>
+                        <filter string="Date Opened" name="group_date"
+                                context="{'group_by': 'date_opened'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- =========================== Action =========================== -->
+        <record id="action_freight_consignment" model="ir.actions.act_window">
+            <field name="name">Consignments</field>
+            <field name="res_model">freight.consignment</field>
+            <field name="view_mode">kanban,list,form</field>
+            <field name="search_view_id" ref="freight_consignment_view_search"/>
+            <field name="context">{'search_default_open': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Open your first consignment</p>
+                <p>A consignment is the digital job file for one shipment. Attach
+                   the commercial invoice, packing list and BOL, add the HS lines,
+                   capture receipts as the clerk pays duties — everything the
+                   manila folder used to carry, in one searchable record.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

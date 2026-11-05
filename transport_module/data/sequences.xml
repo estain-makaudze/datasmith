@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="seq_transport_route" model="ir.sequence">
+            <field name="name">Transport Route Number</field>
+            <field name="code">transport.route</field>
+            <field name="prefix">RTE</field>
+            <field name="padding">4</field>
+        </record>
+
+        <record id="seq_transport_vehicle" model="ir.sequence">
+            <field name="name">Transport Vehicle Number</field>
+            <field name="code">transport.vehicle</field>
+            <field name="prefix">VEH</field>
+            <field name="padding">4</field>
+        </record>
+
+        <record id="seq_transport_vehicle_service" model="ir.sequence">
+            <field name="name">Transport Vehicle Service Number</field>
+            <field name="code">transport.vehicle.service</field>
+            <field name="prefix">SVC</field>
+            <field name="padding">4</field>
+        </record>
+
+        <record id="seq_transport_driver" model="ir.sequence">
+            <field name="name">Transport Driver Number</field>
+            <field name="code">transport.driver</field>
+            <field name="prefix">DRV</field>
+            <field name="padding">4</field>
+        </record>
+
+        <record id="seq_transport_leave" model="ir.sequence">
+            <field name="name">Transport Leave Number</field>
+            <field name="code">transport.leave</field>
+            <field name="prefix">LVE</field>
+            <field name="padding">5</field>
+        </record>
+
+        <record id="seq_transport_cashup" model="ir.sequence">
+            <field name="name">Transport Cash-Up Number</field>
+            <field name="code">transport.cashup</field>
+            <field name="prefix">CSH</field>
+            <field name="padding">5</field>
+        </record>
+
+        <record id="seq_transport_payment_run" model="ir.sequence">
+            <field name="name">Transport Payment Run Number</field>
+            <field name="code">transport.payment.run</field>
+            <field name="prefix">PAY</field>
+            <field name="padding">4</field>
+        </record>
+
+    </data>
+</odoo>

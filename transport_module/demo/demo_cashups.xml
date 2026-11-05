@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Generates a full Monday–Saturday week of cash-ups (mixed USD/ZWG),
+             leave allocations and one approved unpaid absence, relative to the
+             install date so the demo is always fresh. -->
+        <function model="transport.cashup" name="_generate_demo_data"/>
+
+    </data>
+</odoo>

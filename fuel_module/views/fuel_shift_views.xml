@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_fuel_shift_list" model="ir.ui.view">
+            <field name="name">fuel.shift.list</field>
+            <field name="model">fuel.shift</field>
+            <field name="arch" type="xml">
+                <list string="Shifts"
+                      decoration-danger="has_tolerance_breach or total_shortage &gt; 0"
+                      decoration-muted="state == 'cancelled'">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="shift_label"/>
+                    <field name="site_id"/>
+                    <field name="supervisor_id" optional="show"/>
+                    <field name="total_litres" sum="Litres"/>
+                    <field name="total_expected" sum="Expected"/>
+                    <field name="total_declared" sum="Declared"/>
+                    <field name="total_shortage" sum="Cash variance"/>
+                    <field name="total_wet_variance" sum="Wet variance (l)"/>
+                    <field name="dips_missing" optional="hide"/>
+                    <field name="has_tolerance_breach" string="Over tol." optional="show"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'open'"
+                           decoration-warning="state == 'closed'"
+                           decoration-success="state in ('confirmed','posted')"/>
+                    <field name="currency_id" column_invisible="True"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_fuel_shift_form" model="ir.ui.view">
+            <field name="name">fuel.shift.form</field>
+            <field name="model">fuel.shift</field>
+            <field name="arch" type="xml">
+                <form string="Shift">
+                    <header>
+                        <button name="action_open" type="object" string="Open Shift"
+                                class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_close" type="object" string="Close Shift"
+                                class="btn-primary" invisible="state != 'open'"/>
+                        <button name="action_confirm" type="object" string="Confirm"
+                                class="btn-primary" invisible="state != 'closed'"
+                                groups="fuel_module.group_fuel_supervisor"/>
+                        <button name="action_post" type="object" string="Post to Accounting"
+                                class="btn-primary" invisible="state != 'confirmed'"
+                                groups="fuel_module.group_fuel_manager"/>
+                        <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                                invisible="state in ('draft','posted','cancelled')"
+                                groups="fuel_module.group_fuel_manager"/>
+                        <button name="action_cancel" type="object" string="Cancel"
+                                invisible="state in ('posted','cancelled')"
+                                groups="fuel_module.group_fuel_manager"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,open,closed,confirmed,posted"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_move" type="object"
+                                    class="oe_stat_button" icon="fa-book"
+                                    invisible="not move_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Journal</span>
+                                    <span class="o_stat_text">Entry</span>
+                                </div>
+                            </button>
+                        </div>
+                        <field name="move_id" invisible="1"/>
+                        <div class="oe_title">
+                            <h1><field name="name" readonly="1"/></h1>
+                        </div>
+                        <div class="alert alert-warning" role="alert"
+                             invisible="not price_change_warning">
+                            <field name="price_change_warning" readonly="1" nolabel="1"/>
+                        </div>
+                        <div class="alert alert-info" role="alert"
+                             invisible="not dips_missing or state == 'draft'">
+                            No closing dip was taken, so wet stock is not reconciled for
+                            this shift. Cash still is.
+                        </div>
+                        <group>
+                            <group>
+                                <field name="site_id" readonly="state != 'draft'"/>
+                                <field name="date" readonly="state not in ('draft','open')"/>
+                                <field name="shift_label" readonly="state not in ('draft','open')"/>
+                                <field name="supervisor_id" readonly="state in ('confirmed','posted','cancelled')"/>
+                            </group>
+                            <group>
+                                <field name="start_datetime" readonly="state != 'draft'"/>
+                                <field name="end_datetime" readonly="state not in ('draft','open')"/>
+                                <field name="currency_id" groups="base.group_multi_currency"/>
+                                <field name="user_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Pumps" name="nozzles">
+                                <field name="nozzle_line_ids" readonly="state not in ('draft','open')">
+                                    <list editable="bottom">
+                                        <field name="site_id" column_invisible="True"/>
+                                        <field name="currency_id" column_invisible="True"/>
+                                        <field name="state" column_invisible="True"/>
+                                        <field name="nozzle_id" readonly="state != 'draft'"/>
+                                        <field name="product_id" readonly="1" optional="show"/>
+                                        <field name="attendant_id"/>
+                                        <field name="opening_totaliser" readonly="state != 'draft'"/>
+                                        <field name="closing_totaliser"/>
+                                        <field name="test_litres"/>
+                                        <field name="litres_sold" sum="Litres" readonly="1"/>
+                                        <field name="price_unit" readonly="1" optional="show"/>
+                                        <field name="amount_expected" sum="Expected" readonly="1"/>
+                                        <field name="closing_entered" column_invisible="True"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Tanks" name="tanks">
+                                <p class="text-muted">
+                                    Dip every tank at handover. Leave the closing dip at zero
+                                    if this site only dips once a day; wet stock is then
+                                    reconciled on the shift that does dip.
+                                </p>
+                                <field name="tank_line_ids" readonly="state not in ('draft','open')">
+                                    <list editable="bottom"
+                                          decoration-danger="over_tolerance"
+                                          decoration-warning="water_dip_mm &gt; 0">
+                                        <field name="state" column_invisible="True"/>
+                                        <field name="site_id" column_invisible="True"/>
+                                        <field name="tank_id" readonly="state != 'draft'"/>
+                                        <field name="product_id" readonly="1" optional="show"/>
+                                        <field name="opening_dip_mm" readonly="state != 'draft'"/>
+                                        <field name="opening_litres" readonly="1"/>
+                                        <field name="delivered_litres"/>
+                                        <field name="sold_litres" readonly="1"/>
+                                        <field name="book_closing_litres" readonly="1"/>
+                                        <field name="closing_dip_mm"/>
+                                        <field name="closing_litres" readonly="1"/>
+                                        <field name="water_dip_mm" optional="show"/>
+                                        <field name="variance_litres" sum="Variance (l)" readonly="1"/>
+                                        <field name="variance_percent" readonly="1"/>
+                                        <field name="over_tolerance" readonly="1" optional="show"/>
+                                        <field name="closing_dipped" column_invisible="True"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Tender" name="tender">
+                                <field name="tender_line_ids" readonly="state not in ('draft','open')">
+                                    <list editable="bottom">
+                                        <field name="site_id" column_invisible="True"/>
+                                        <field name="company_currency_id" column_invisible="True"/>
+                                        <field name="state" column_invisible="True"/>
+                                        <field name="attendant_id"/>
+                                        <field name="method_id"/>
+                                        <field name="kind" column_invisible="True"/>
+                                        <field name="currency_id"/>
+                                        <field name="amount"/>
+                                        <field name="rate"/>
+                                        <field name="company_amount" sum="Declared" readonly="1"/>
+                                        <field name="reference"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Per Attendant" name="attendants"
+                                  invisible="state in ('draft','open')">
+                                <field name="attendant_line_ids" readonly="1">
+                                    <list decoration-danger="amount_shortage &gt; 0"
+                                          decoration-success="amount_shortage &lt; 0">
+                                        <field name="attendant_id"/>
+                                        <field name="amount_expected" sum="Expected"/>
+                                        <field name="amount_declared" sum="Declared"/>
+                                        <field name="amount_shortage" sum="Shortage"/>
+                                        <field name="currency_id" column_invisible="True"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes" name="notes">
+                                <field name="note" placeholder="Anything the owner should know."/>
+                            </page>
+                        </notebook>
+                        <group class="oe_subtotal_footer oe_right">
+                            <field name="total_litres"/>
+                            <field name="total_test_litres"/>
+                            <field name="total_expected"/>
+                            <field name="total_declared"/>
+                            <field name="total_shortage" class="oe_subtotal_footer_separator"/>
+                            <field name="total_wet_variance"/>
+                            <field name="has_tolerance_breach" invisible="1"/>
+                            <field name="dips_missing" invisible="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_fuel_shift_search" model="ir.ui.view">
+            <field name="name">fuel.shift.search</field>
+            <field name="model">fuel.shift</field>
+            <field name="arch" type="xml">
+                <search string="Shifts">
+                    <field name="name"/>
+                    <field name="site_id"/>
+                    <field name="supervisor_id"/>
+                    <filter name="open" string="Open" domain="[('state','=','open')]"/>
+                    <filter name="to_confirm" string="To Confirm" domain="[('state','=','closed')]"/>
+                    <separator/>
+                    <filter name="over_tolerance" string="Over tolerance"
+                            domain="[('has_tolerance_breach','=',True)]"/>
+                    <filter name="short" string="Cash short"
+                            domain="[('total_shortage','&gt;',0)]"/>
+                    <filter name="not_dipped" string="Not dipped"
+                            domain="[('dips_missing','=',True)]"/>
+                    <separator/>
+                    <filter name="today" string="Today"
+                            domain="[('date','=',context_today().strftime('%Y-%m-%d'))]"/>
+                    <group>
+                        <filter name="group_site" string="Site" context="{'group_by': 'site_id'}"/>
+                        <filter name="group_date" string="Business Day" context="{'group_by': 'date'}"/>
+                        <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_fuel_shift" model="ir.actions.act_window">
+            <field name="name">Shifts</field>
+            <field name="res_model">fuel.shift</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Capture a shift</p>
+                <p>Pick the site and the sheet lays itself out: a row per nozzle opened
+                   at last night's closing reading, and a row per tank. Close it and you
+                   get two numbers, the wet stock variance in litres and the cash
+                   variance with a name on it.</p>
+            </field>
+        </record>
+
+        <record id="view_fuel_payment_method_list" model="ir.ui.view">
+            <field name="name">fuel.payment.method.list</field>
+            <field name="model">fuel.payment.method</field>
+            <field name="arch" type="xml">
+                <list string="Payment Methods" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="kind"/>
+                    <field name="currency_id"/>
+                    <field name="requires_reference"/>
+                    <field name="account_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_fuel_payment_method" model="ir.actions.act_window">
+            <field name="name">Payment Methods</field>
+            <field name="res_model">fuel.payment.method</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fdms_register_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n_zw.fdms.register.wizard.form</field>
+        <field name="model">l10n_zw.fdms.register.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="state" invisible="1"/>
+                <field name="device_id" invisible="1"/>
+                <div invisible="state != 'verify'">
+                    <p>Step 1: verify the device's activation key and serial number with
+                       ZIMRA. The taxpayer registered against this device will be shown
+                       for confirmation before any registration takes place.</p>
+                </div>
+                <group invisible="state != 'confirm'">
+                    <div class="alert alert-info" role="alert" colspan="2">
+                        ZIMRA knows this device as belonging to the taxpayer below.
+                        Registering will generate the device key and certificate.
+                    </div>
+                    <field name="taxpayer_name"/>
+                    <field name="taxpayer_tin"/>
+                    <field name="taxpayer_vat_number"/>
+                    <field name="branch_name"/>
+                </group>
+                <footer>
+                    <button name="action_verify" type="object" string="Verify Taxpayer"
+                            class="btn-primary" invisible="state != 'verify'"/>
+                    <button name="action_register" type="object" string="Confirm &amp; Register"
+                            class="btn-primary" invisible="state != 'confirm'"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
