@@ -1,14 +1,24 @@
-"""Subprocess wrapper for the local `claude` CLI.
+"""Subprocess wrapper that turns the local `claude` CLI into a database-aware
+Odoo assistant.
 
-Security notes (read before touching this file):
-  * subprocess.run with shell=False + explicit arg list — no command injection surface.
-  * timeout enforced at the subprocess level — a hung CLI can't hang the Odoo worker.
-  * env variables sanitised — we pass only what the CLI needs; secrets aren't leaked
-    into the child process environment.
-  * Prompt size capped — 50KB max per call to prevent runaway subprocess memory.
-  * Runs as whatever user Odoo runs as. For the subscription to be found,
-    ~/.claude/.credentials.json must exist and be readable by that user.
-    One-time setup:  sudo -u odoo claude /login
+Instead of trying to parse a hand-rolled JSON action envelope from Claude,
+we give it the `Bash(psql *)` tool scoped to ONLY psql commands and a system
+prompt that tells it how to reach the Odoo database. Claude's agent loop then
+runs whatever queries it needs and responds with natural language.
+
+Why scoped `Bash(psql *)`:
+    - `--allowed-tools "Bash(psql *)"` lets Claude run psql invocations only.
+    - Anything else (rm, curl, other shell commands) is auto-denied.
+    - `--permission-prompts none` means no interactive approval flow —
+      disallowed tool calls fail silently without hanging the subprocess.
+
+Security:
+    - subprocess.run with shell=False + explicit arg list
+    - timeout per call
+    - prompt size cap
+    - env minimal: HOME, PATH, LANG, PGPASSWORD (so psql can auth)
+    - the odoo system user's PG password is read from the Odoo config at
+      runtime (not hard-coded)
 """
 import json
 import logging
@@ -17,20 +27,56 @@ import subprocess
 
 _logger = logging.getLogger(__name__)
 
-MAX_PROMPT_BYTES = 50_000
+MAX_PROMPT_BYTES = 200_000
 DEFAULT_BINARY = "/usr/local/bin/claude"
 DEFAULT_MODEL = "sonnet"
-DEFAULT_TIMEOUT = 60
+DEFAULT_TIMEOUT = 120
+
+
+DB_SYSTEM_PROMPT = """You are an Odoo 19 database assistant with direct access
+to this PostgreSQL database via the `psql` command. The user is chatting with
+you inside Odoo; answer questions by querying the database and reply in natural
+language.
+
+HOW TO QUERY (use the Bash tool with a psql command):
+    psql -h 127.0.0.1 -p 5432 -U odoo -d {db_name} -c "SELECT ... FROM ... LIMIT 10"
+
+The PGPASSWORD env var is already set, so you don't need `-W`.
+
+KEY ODOO TABLES:
+    res_partner        — contacts: customers, vendors, individuals
+        key columns: id, name, email, phone, is_company, customer_rank, supplier_rank, country_id, create_date
+        notes: customer_rank > 0 means they're a customer; is_company=true for businesses
+    res_users          — login users (id, login, partner_id)
+    account_move       — invoices, bills, journal entries
+        key columns: id, name, move_type, state, partner_id, invoice_date, amount_total, currency_id
+        move_type: 'out_invoice' = customer invoice, 'in_invoice' = vendor bill
+        state: 'draft' | 'posted' | 'cancel'
+    sale_order         — sales orders (id, name, partner_id, state, amount_total)
+    purchase_order     — purchase orders
+    product_product    — product variants (id, default_code, list_price, active)
+    product_template   — product templates (name, sale_ok, type)
+    crm_lead           — CRM leads
+    res_company        — companies
+
+RULES:
+    1. Default LIMIT 20 on any SELECT that could return many rows.
+    2. Use quoted table/column names only if needed (they're all snake_case).
+    3. For "who is my X" type questions, SELECT a short list of relevant columns, not *.
+    4. If you need a JSON-aggregated field (name_tsv, etc.), skip it.
+    5. Never run DROP, TRUNCATE, or DELETE. For INSERT/UPDATE, confirm the
+       intent in your reply so the user sees what you did.
+    6. Reply in short, friendly English. If you found records, format a tidy
+       list (not raw psql output).
+
+Now answer the user's question."""
 
 
 class ClaudeCliError(Exception):
-    """Any failure in the subprocess call — missing binary, timeout, non-zero exit, parse fail."""
+    """Any failure in the subprocess call."""
 
 
 class ClaudeCliBackend:
-    """Thin subprocess wrapper. Not an Odoo model — a plain service class
-    instantiated per request so it reads fresh config parameters each time."""
-
     def __init__(self, env):
         self.env = env
         p = env["ir.config_parameter"].sudo()
@@ -40,104 +86,79 @@ class ClaudeCliBackend:
             self.timeout = int(p.get_param("ai_claude_cli.timeout") or DEFAULT_TIMEOUT)
         except (TypeError, ValueError):
             self.timeout = DEFAULT_TIMEOUT
+        # Pull the DB name + PG password from the Odoo environment (not the config,
+        # so this works regardless of how Odoo was launched)
+        self.db_name = env.cr.dbname
+        self.pg_user = env.cr._cnx.info.user
+        self.pg_password = self._get_pg_password()
+
+    def _get_pg_password(self):
+        """Read PG password from Odoo's config object."""
+        try:
+            from odoo.tools import config as _cfg
+            return _cfg.get("db_password") or ""
+        except Exception:   # noqa: BLE001
+            return ""
 
     def call(self, prompt, system_prompt=None, timeout=None, **_kwargs):
-        """Run `claude -p` and return the response as a plain string.
-
-        :param prompt: The user prompt.
-        :param system_prompt: Optional system prompt (prepended via --append-system-prompt).
-        :param timeout: Per-call timeout override; falls back to configured default.
-        """
+        """Run `claude -p` with Bash(psql *) tool access + DB-aware system prompt."""
         if not prompt:
             raise ClaudeCliError("Empty prompt.")
-
         encoded = prompt.encode("utf-8", errors="replace")
         if len(encoded) > MAX_PROMPT_BYTES:
             raise ClaudeCliError(
                 f"Prompt too large ({len(encoded)} bytes > {MAX_PROMPT_BYTES} cap)."
             )
-
         if not os.path.exists(self.binary_path):
             raise ClaudeCliError(
-                f"claude binary not found at {self.binary_path}. "
-                "Set a correct path in Settings → AI → Path to claude binary, "
-                "or install the CLI on the server."
+                f"claude binary not found at {self.binary_path}."
             )
 
-        # Build the command. shell=False, explicit args, no interpolation.
+        # Compose the system prompt: our DB-aware block + whatever Odoo passed in.
+        db_prompt = DB_SYSTEM_PROMPT.format(db_name=self.db_name)
+        if system_prompt:
+            full_system = db_prompt + "\n\n---\n\n" + system_prompt
+        else:
+            full_system = db_prompt
+
         cmd = [
             self.binary_path,
             "-p", prompt,
             "--model", self.model,
-            "--output-format", "json",
-            "--max-turns", "1",
+            "--output-format", "text",
+            "--allowed-tools", "Bash(psql *)",
+            "--permission-prompts", "none",
+            "--append-system-prompt", full_system,
         ]
-        if system_prompt:
-            cmd.extend(["--append-system-prompt", system_prompt])
 
-        # Sanitise env. Preserve HOME so ~/.claude/.credentials.json resolves,
-        # preserve PATH so any claude subprocess children work, drop everything else.
+        # Sanitised env: HOME (for creds), PATH, LANG, PGPASSWORD for psql auth.
         env = {
-            "HOME": os.environ.get("HOME", "/"),
+            "HOME": os.environ.get("HOME", "/opt/odoo"),
             "PATH": os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin"),
             "LANG": os.environ.get("LANG", "en_US.UTF-8"),
+            "PGPASSWORD": self.pg_password or "",
         }
 
         effective_timeout = timeout if timeout is not None else self.timeout
-        _logger.info("claude_cli: calling %s (model=%s, timeout=%ss, prompt_bytes=%s)",
-                     self.binary_path, self.model, effective_timeout, len(encoded))
+        _logger.info("claude_cli: calling %s (model=%s, timeout=%ss, db=%s, prompt_bytes=%s)",
+                     self.binary_path, self.model, effective_timeout, self.db_name, len(encoded))
 
         try:
-            result = subprocess.run(  # noqa: S603 — args list, shell=False
-                cmd,
-                shell=False,
-                text=True,
-                capture_output=True,
-                timeout=effective_timeout,
-                env=env,
-                check=False,
+            result = subprocess.run(   # noqa: S603
+                cmd, shell=False, text=True, capture_output=True,
+                timeout=effective_timeout, env=env, check=False,
             )
         except subprocess.TimeoutExpired:
             raise ClaudeCliError(f"Claude CLI timed out after {effective_timeout}s.")
         except FileNotFoundError:
             raise ClaudeCliError(f"claude binary not executable at {self.binary_path}.")
-        except Exception as e:   # noqa: BLE001 — surface everything upstream
+        except Exception as e:   # noqa: BLE001
             raise ClaudeCliError(f"Subprocess failed: {e}")
 
         if result.returncode != 0:
-            # Common failures: not authenticated, rate-limited, invalid model.
             stderr = (result.stderr or "").strip()[:500]
             raise ClaudeCliError(
                 f"Claude CLI exited {result.returncode}: {stderr or '(no stderr)'}"
             )
 
-        return self._parse_response(result.stdout)
-
-    def _parse_response(self, stdout):
-        """Claude CLI with --output-format json returns a JSON envelope. Extract the text."""
-        if not stdout or not stdout.strip():
-            raise ClaudeCliError("Claude CLI returned empty output.")
-
-        # Try JSON first (our requested format)
-        try:
-            data = json.loads(stdout)
-        except ValueError:
-            # Not JSON — some older CLI versions dump plain text when --output-format
-            # isn't fully respected. Return as-is.
-            return stdout.strip()
-
-        # Shape: {"type":"result","subtype":"success","result":"<text>",...}
-        if isinstance(data, dict):
-            if "result" in data and isinstance(data["result"], str):
-                return data["result"]
-            if "content" in data:   # some versions
-                content = data["content"]
-                if isinstance(content, str):
-                    return content
-                if isinstance(content, list) and content:
-                    first = content[0]
-                    if isinstance(first, dict) and "text" in first:
-                        return first["text"]
-
-        # Fallback — return the raw JSON as text so the user sees SOMETHING
-        return json.dumps(data, indent=2)
+        return (result.stdout or "").strip()
