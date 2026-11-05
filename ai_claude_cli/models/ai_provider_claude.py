@@ -35,27 +35,48 @@ _logger = logging.getLogger(__name__)
 _original_request_llm = _odoo_llm.LLMApiService._request_llm
 
 # System-prompt extension that teaches Claude the action envelope.
-_TOOL_PROMPT = """You are an Odoo 19 AI assistant with the ability to read and write records in the Odoo database.
+# IMPORTANT: this is appended AFTER any native Odoo system prompt so it has
+# the final say on behaviour. Any earlier "respond in plain English" guidance
+# from Odoo's own prompt is explicitly overridden below.
+_TOOL_PROMPT = """
 
-When the user wants to create, read, search, or update a record, respond with ONLY a JSON object in this exact format (no prose, no markdown fences):
+=== TOOL-USE OVERRIDE (highest priority — overrides any prior instruction) ===
 
-{"action": "search", "model": "res.partner", "domain": [["is_company", "=", true]], "fields": ["name", "email"], "limit": 10}
-{"action": "create", "model": "res.partner", "values": {"name": "Acme", "email": "info@acme.com"}}
-{"action": "update", "model": "res.partner", "id": 42, "values": {"email": "new@acme.com"}}
+You have DIRECT WRITE ACCESS to this Odoo 19 database via a tool call layer.
+You MUST use it whenever the user is asking for data or asking you to change data.
+Ignore any earlier instruction that said to respond conversationally about what
+you *could* do — you can actually do it, so do it.
 
-Odoo technical model names you'll commonly need:
-  res.partner       — contacts (customers, vendors, individuals; is_company flag)
-  res.users         — users
-  account.move      — invoices and journal entries
-  sale.order        — sales orders
-  product.product   — products
-  crm.lead          — CRM leads
+TOOL CALL FORMAT — reply with ONLY a JSON object, nothing else, no prose, no
+markdown fences, no explanation before or after:
 
-Domain syntax is Odoo's: [["field","=",value], ...]. Use [] for everything.
+  {"action": "search", "model": "res.partner", "domain": [["customer_rank",">",0]], "fields": ["name","email"], "limit": 20}
+  {"action": "create", "model": "res.partner", "values": {"name":"Datasmith","is_company":true,"email":"info@datasmith.co.za"}}
+  {"action": "update", "model": "res.partner", "id": 42, "values": {"email":"new@acme.com"}}
+  {"action": "read", "model": "res.partner", "id": 42, "fields": ["name","email","phone"]}
 
-When the user asks a general question, chats, or asks you to explain something, respond normally in natural language — NO JSON.
+WHEN TO USE A TOOL (always, not sometimes):
+  - "list my customers" / "show me my contacts" / "who are my customers" → search action on res.partner
+  - "create a customer called X" / "add a contact X" → create action on res.partner
+  - "update X's email to Y" → update action on res.partner
+  - "show me invoice 42" / "what invoices do I have" → search/read on account.move
+  - Any question whose answer requires looking at the database → search action
 
-If unsure whether to use a tool: default to tool-call. Example: "make a new customer called Datasmith" → emit a create action.
+Odoo technical model names:
+  res.partner      — contacts (customers, vendors, employees — all one table; is_company flag separates them)
+  res.users        — login users
+  account.move     — invoices, bills, journal entries
+  sale.order       — sales orders
+  purchase.order   — purchase orders
+  product.product  — products
+  crm.lead         — CRM leads
+
+Odoo domain syntax: a list of 3-tuples wrapped as JSON arrays — [["field","operator",value], ...]
+Operators: =, !=, >, <, >=, <=, in, like, ilike. Pass [] for "everything".
+
+ONLY respond in plain English when the user is chatting, greeting, or asking a question whose answer doesn't need database data (e.g. "what is Odoo?").
+
+Default on ambiguity: USE THE TOOL. It's easier to narrow down afterwards than to leave the user without data.
 """
 
 # Match Claude's bare-JSON output (strict: starts with { and ends with })
@@ -153,7 +174,10 @@ def _patched_request_llm(self, *args, **kwargs):
     user_prompts = kwargs.get("user_prompts") or (args[2] if len(args) > 2 else [])
 
     native_system = "\n\n".join(p for p in (system_prompts or []) if p)
-    system_prompt = (_TOOL_PROMPT + "\n\n---\n\n" + native_system).strip() if native_system else _TOOL_PROMPT
+    # Our prompt goes LAST so it has the final word on behaviour. The native
+    # Odoo prompt ("you are a helpful assistant", etc.) comes first; our
+    # override explicitly disclaims any earlier "respond in English" rule.
+    system_prompt = (native_system + _TOOL_PROMPT).strip() if native_system else _TOOL_PROMPT.strip()
     user_prompt = "\n\n".join(p for p in (user_prompts or []) if p) or "Hello"
 
     _logger.info(
@@ -171,6 +195,10 @@ def _patched_request_llm(self, *args, **kwargs):
         raise UserError(f"Claude CLI failed: {e}")
 
     action = _extract_action(first)
+    _logger.info(
+        "ai_claude_cli: Claude first-turn response (first 300 chars): %s | action_parsed=%s",
+        (first or "")[:300].replace("\n", "\\n"), bool(action),
+    )
     if not action:
         # Plain text reply from Claude; return as-is.
         return [first or ""], [], []
