@@ -45,7 +45,7 @@
                         <field name="base_url" placeholder="https://sage.example.com/Sage300WebApi"/>
                         <field name="company_code" placeholder="SAMINC"/>
                         <field name="username"/>
-                        <field name="password" password="True"/>
+                        <field name="password" password="1"/>
                         <field name="demo_mode" widget="boolean_toggle"/>
                     </group>
                     <group string="Behaviour">
