@@ -3,35 +3,31 @@
     <record id="res_config_settings_view_form_ai_claude" model="ir.ui.view">
         <field name="name">res.config.settings.ai.claude.cli</field>
         <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="ai.res_config_settings_view_form" />
+        <field name="inherit_id" ref="ai.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <!-- Append a third provider block alongside ChatGPT / Gemini.
-                 We add it at the end of the Providers section so it reads
-                 as a natural third option. -->
-            <xpath expr="//block[@id='ai_providers']" position="inside">
-                <setting id="ai_provider_claude_cli"
+            <!-- Add a third provider block alongside the native ChatGPT + Gemini
+                 blocks, matching their visual pattern exactly. -->
+            <xpath expr="//setting[@id='google_provider']" position="after">
+                <setting id="claude_cli_provider"
                          string="Use your own Claude subscription"
-                         help="Route Odoo AI through the local `claude` CLI (your Claude Code / Claude Max subscription) instead of an API key.">
+                         help="Route Odoo AI through the local claude CLI (your Claude Code / Claude Max subscription) instead of an API key."
+                         groups="base.group_system">
                     <field name="use_claude_cli"/>
-                    <div class="row mt16" invisible="not use_claude_cli">
-                        <div class="col-12">
-                            <label for="claude_cli_path" class="o_light_label"/>
-                            <field name="claude_cli_path" placeholder="/usr/local/bin/claude"/>
+                    <group invisible="not use_claude_cli">
+                        <div class="flex-grow-1">
+                            <label for="claude_cli_path" string="Path to claude binary"/>
+                            <field name="claude_cli_path" placeholder="/usr/local/bin/claude" nolabel="1" class="w-100"/>
+                            <label for="claude_cli_model" string="Model" class="mt8"/>
+                            <field name="claude_cli_model" placeholder="sonnet" nolabel="1" class="w-100"/>
+                            <label for="claude_cli_timeout" string="Timeout (seconds)" class="mt8"/>
+                            <field name="claude_cli_timeout" nolabel="1"/>
+                            <div class="mt8">
+                                <button name="action_test_claude_cli" type="object"
+                                        string="Test Claude connection"
+                                        class="btn btn-secondary"/>
+                            </div>
                         </div>
-                        <div class="col-6 mt8">
-                            <label for="claude_cli_model" class="o_light_label"/>
-                            <field name="claude_cli_model" placeholder="sonnet"/>
-                        </div>
-                        <div class="col-6 mt8">
-                            <label for="claude_cli_timeout" class="o_light_label"/>
-                            <field name="claude_cli_timeout"/>
-                        </div>
-                        <div class="col-12 mt8">
-                            <button name="action_test_claude_cli" type="object"
-                                    string="Test Claude connection"
-                                    class="btn btn-secondary"/>
-                        </div>
-                    </div>
+                    </group>
                 </setting>
             </xpath>
         </field>

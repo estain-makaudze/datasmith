@@ -1,66 +1,31 @@
-"""Hook into Odoo 19's native `ai` module dispatcher.
+"""Phase-1 stub.
 
-Odoo's `ai` module exposes a provider pattern: a single service class routes
-AI requests to a backend based on the active provider. We extend that class,
-add a Claude case, and route to our subprocess wrapper when the Claude CLI
-option is enabled in Settings.
+The clean inheritance pattern we originally wanted (`_inherit = 'ai.provider'`
+with a `_dispatch` override) is **not applicable in Odoo 19**: the native
+`ai` module does not expose a `provider` ORM model. Instead, Odoo 19 routes
+every LLM call through a Python utility class — `odoo.addons.ai.utils.
+llm_api_service.LLMApiService` — which is hardcoded to the OpenAI and Google
+code paths (see `enterprise19/ai/utils/llm_providers.py` for the PROVIDERS
+list).
 
-NOTE on naming:
-  Odoo 19's internal class is `ai.provider` (or `ai.service` depending on
-  version). Both patterns are handled here: we try to extend `ai.provider` and
-  fall back to a safe no-op if that model doesn't exist, so the module stays
-  installable even if Odoo renames the dispatcher between minor versions.
+Routing EVERY Odoo AI feature through Claude therefore requires a monkey-patch
+on `LLMApiService` to add a claude_cli branch. That is intentionally NOT shipped
+in this phase-1 demo because:
 
-Request/response shape:
-  Called with (prompt, system_prompt=None, **kwargs). Must return a string:
-  the text response. Matches what the other providers return.
+    (1) monkey-patching Enterprise code across Odoo versions is brittle;
+    (2) the sales value of the demo is already proven by the Settings UI
+        + working subprocess test button (see res_config_settings.action_test_claude_cli);
+    (3) a clean long-term fix is a separate PR *into* enterprise ai itself,
+        adding a Provider("claude_cli", ...) entry and a dispatch branch.
+
+What this phase-1 ships:
+    - Third "Use your own Claude subscription" block in Settings > AI
+    - A Test button that proves the subprocess routing works end-to-end
+    - The subprocess wrapper (services/claude_cli.py) ready to be wired
+      into any Odoo caller that wants Claude instead of OpenAI/Google.
+
+Phase-2 roadmap (documented in README):
+    - Ship a monkey-patch module that wraps LLMApiService so native
+      ai.agent / ai.composer calls route through Claude.
+    - Alternatively: upstream a Provider('claude_cli') PR to Odoo Enterprise.
 """
-import logging
-
-from odoo import api, models
-
-_logger = logging.getLogger(__name__)
-
-
-# ----- Guard: only try to inherit 'ai.provider' if it exists --------------
-_HAS_AI_MODULE = True   # flipped at import time by _register_hook pattern
-
-try:
-    # Attempt the inheritance. If `ai` module isn't loaded this will fail at
-    # registration time with a clear error — the manifest already depends on
-    # `ai` so this is defensive.
-    class AiProviderClaude(models.Model):
-        """Add a Claude CLI path through Odoo's AI provider dispatcher.
-
-        Reuses the existing provider plumbing — we don't invent our own.
-        """
-        _inherit = "ai.provider"
-
-        def _get_enabled_providers(self):
-            """Extend the list of enabled providers with 'claude_cli' when on."""
-            enabled = super()._get_enabled_providers() if hasattr(super(), "_get_enabled_providers") else []
-            if self.env["ir.config_parameter"].sudo().get_param("ai_claude_cli.enabled") == "True":
-                enabled = ["claude_cli"] + list(enabled or [])
-            return enabled
-
-        def _dispatch(self, provider, prompt, system_prompt=None, **kwargs):
-            """Route to our subprocess when provider='claude_cli'; otherwise delegate."""
-            if provider == "claude_cli":
-                return self._call_claude_cli(prompt, system_prompt=system_prompt, **kwargs)
-            if hasattr(super(), "_dispatch"):
-                return super()._dispatch(provider, prompt, system_prompt=system_prompt, **kwargs)
-            return None
-
-        def _call_claude_cli(self, prompt, system_prompt=None, **kwargs):
-            """Run the CLI subprocess and return the plain text response."""
-            from ..services.claude_cli import ClaudeCliBackend
-            backend = ClaudeCliBackend(self.env)
-            return backend.call(prompt=prompt, system_prompt=system_prompt, **kwargs)
-
-except KeyError:
-    # `ai.provider` model does not exist in this Odoo install — module becomes a no-op.
-    _HAS_AI_MODULE = False
-    _logger.warning(
-        "ai_claude_cli: Odoo's `ai.provider` model not found. "
-        "Install Odoo 19 Enterprise with the `ai` module enabled."
-    )
