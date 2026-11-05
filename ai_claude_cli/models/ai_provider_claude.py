@@ -172,13 +172,53 @@ def _patched_request_llm(self, *args, **kwargs):
     llm_model = kwargs.get("llm_model") or (args[0] if args else None)
     system_prompts = kwargs.get("system_prompts") or (args[1] if len(args) > 1 else [])
     user_prompts = kwargs.get("user_prompts") or (args[2] if len(args) > 2 else [])
+    inputs = kwargs.get("inputs") or []
+
+    # The Odoo Ask AI drawer sometimes pre-seeds user_prompts with "Hello" and
+    # puts the real user message into `inputs` (chat history). Extract text from
+    # inputs when user_prompts looks like just a greeting.
+    def _extract_user_text_from_inputs(inp_list):
+        pieces = []
+        for item in inp_list or []:
+            if isinstance(item, dict):
+                role = (item.get("role") or "").lower()
+                if role == "user":
+                    content = item.get("content") or item.get("text") or ""
+                    if isinstance(content, list):
+                        for c in content:
+                            if isinstance(c, dict):
+                                pieces.append(c.get("text") or c.get("content") or "")
+                            else:
+                                pieces.append(str(c))
+                    else:
+                        pieces.append(str(content))
+            elif isinstance(item, str):
+                pieces.append(item)
+        return [p for p in pieces if p.strip()]
+
+    _logger.info(
+        "ai_claude_cli: RAW args=%s kwargs_keys=%s user_prompts=%s inputs_sample=%s",
+        [type(a).__name__ for a in args],
+        list(kwargs.keys()),
+        [(p[:80] if isinstance(p, str) else type(p).__name__) for p in (user_prompts or [])],
+        str(inputs)[:300],
+    )
+
+    inputs_user_text = _extract_user_text_from_inputs(inputs)
+    # If user_prompts is just a trivial greeting AND we have real messages in
+    # inputs, prefer those.
+    real_user_text = "\n\n".join(user_prompts) if user_prompts else ""
+    if (not real_user_text or len(real_user_text) < 15) and inputs_user_text:
+        real_user_text = inputs_user_text[-1]   # the most recent user turn
+        _logger.info("ai_claude_cli: swapped user_prompts for inputs' last user turn (%d chars)",
+                     len(real_user_text))
 
     native_system = "\n\n".join(p for p in (system_prompts or []) if p)
     # Our prompt goes LAST so it has the final word on behaviour. The native
     # Odoo prompt ("you are a helpful assistant", etc.) comes first; our
     # override explicitly disclaims any earlier "respond in English" rule.
     system_prompt = (native_system + _TOOL_PROMPT).strip() if native_system else _TOOL_PROMPT.strip()
-    user_prompt = "\n\n".join(p for p in (user_prompts or []) if p) or "Hello"
+    user_prompt = real_user_text or "Hello"
 
     _logger.info(
         "ai_claude_cli: intercepting native AI call (model=%s, user_bytes=%s, tools_arg=%s)",
