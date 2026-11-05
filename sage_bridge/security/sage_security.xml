@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="module_category_sage_bridge" model="ir.module.category">
-        <field name="name">Sage 300 Bridge</field>
-        <field name="sequence">60</field>
-    </record>
-
+    <!-- Groups. category_id on res.groups was removed in Odoo 19; group
+         categorisation now follows the module's own category (see __manifest__.py). -->
     <record id="group_sage_user" model="res.groups">
         <field name="name">Sage 300: User</field>
-        <field name="category_id" ref="module_category_sage_bridge"/>
         <field name="comment">Can push invoices to Sage and view sync logs.</field>
     </record>
 
     <record id="group_sage_manager" model="res.groups">
         <field name="name">Sage 300: Manager</field>
-        <field name="category_id" ref="module_category_sage_bridge"/>
         <field name="implied_ids" eval="[(4, ref('group_sage_user'))]"/>
         <field name="comment">Can configure Sage connections and retry dead jobs.</field>
     </record>
